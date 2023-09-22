@@ -4,6 +4,83 @@
   
     
     <entry>
+      <title>联通MATLAB与Mathematica</title>
+      <link href="/2023/09/21/link-matlab-with-mathematica/"/>
+      <url>/2023/09/21/link-matlab-with-mathematica/</url>
+      
+        <content type="html"><![CDATA[<h2 id="LINK-Mathematica-with-Mat"><a href="#LINK-Mathematica-with-Mat" class="headerlink" title="LINK Mathematica with Mat"></a>LINK Mathematica with Mat</h2><ul><li>Win10+MATLAB18b+Mathematica 9.0(Radia)</li></ul><p>参考资料：</p><ul><li><a href="https://blog.csdn.net/Azahaxia/article/details/121686965">MATLink安装</a></li><li><a href="https://blog.csdn.net/miscclp/article/details/23687019?%3E">MATLink安装试例</a></li><li><a href="https://blog.csdn.net/weixin_30889885/article/details/99448645?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-99448645-blog-23687019.235%5Ev38%5Epc_relevant_sort_base3&spm=1001.2101.3001.4242.1&utm_relevant_index=3%5D">MATLAB调用Mathe</a></li><li><a href="https://www.cnblogs.com/Leonhard-E/archive/2012/07/05/2577136.html">MATLAB调用Mathe源博客</a></li></ul><h3 id="Mathematica-Link-Mat"><a href="#Mathematica-Link-Mat" class="headerlink" title="Mathematica Link Mat"></a>Mathematica Link Mat</h3><ul><li><p><a href="http://matlink.org/">下载MATLink</a></p></li><li><p>在Mathematica中执行指令打开文件夹并将MATLink文件移至此</p><pre class="line-numbers language-none"><code class="language-none">SystemOpen@FileNameJoin[&#123;$UserBaseDirectory, &quot;Applications&quot;&#125;]<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li><li><p>添加环境变量Path: C:\Program Files\MATLAB\R2018b\bin\win64</p></li><li><p>需要在MATLAB命令行下输入指令regmatlabserver，将MATLAB注册为COM服务器，须以管理员权限打开MATLAB</p></li><li><p>MATLink常用指令</p><pre class="line-numbers language-none"><code class="language-none">Needs[&quot;MATLink&#96;&quot;]                (*加入MATLink包*)OpenMATLAB[]                     (*与MATLAB建立连接*)CloseMATLAB[]                    (*关闭连接*)magic &#x3D; MFunction[&quot;magic&quot;]       (*使用MATLAB函数‘magic’*)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li><li><p>测试代码</p><pre class="line-numbers language-none"><code class="language-none">Needs[&quot;MATLink&#96;&quot;];(*打开通信包*)OpenMATLAB[];(*建立与Matlab通信*)cdd &#x3D; NotebookDirectory[];(*取得当前notebook的文件夹未知*)MSet[&quot;cdd&quot;, \cdd];(*将此变量传入Matlab*)MEvaluate[&quot;addpath(cdd)&quot;];(*将当前路径加入Matlab系统路径，以找到和调用当前文件夹下的Matlab程序*)\MEvaluate[&quot;mat &#x3D; magic(4)&quot;] (*尝试调用Matlab函数*)mat &#x3D; MGet[&quot;mat&quot;] (*取得Matlab中的变量值*)MSet[&quot;a&quot;, 3];(*放入a变量*)MSet[&quot;b&quot;, 5];(*放入b变量*) MEvaluate[&quot;add2(a, b)&quot;] (*调用当前目录下Matlab函数add2实现两个数的加法运算*) add &#x3D; MFunction[&quot;add2&quot;] (*取得当前目录下Matlab函数add2的地址*)add[3, 5] (*以Mathematica方式调用add2函数*)CloseMATLAB[] (*关闭Matlab*)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul><h3 id="Mat-Link-Mathematica"><a href="#Mat-Link-Mathematica" class="headerlink" title="Mat Link Mathematica"></a>Mat Link Mathematica</h3><ul><li><p>Matlab中调用mex -setup</p></li><li><p><a href="http://files.cnblogs.com/Leonhard-E/Matlab_Mathematica_Link.zip">下载Mat Mathe link文件</a>解压后移至 C:\Program Files\MATLAB\R2018b</p></li><li><p>在Mathematica文件夹中找到ml32i3m.lib移至Mat Mathe_link文件夹</p></li><li><p>运行mathrun.m,运行后完成MEX</p><ul><li><strong>ATTENTION</strong>：修改路径为以下<pre class="line-numbers language-none"><code class="language-none">clearclcaddpath C:\Users\Nexus\AppData\Roaming\Mathematica\Applications\Matlab_Mathematica_Link; % adds the directory C:\XXX to the list of directories which Matlab &quot;sees&quot; (referred to as paths)mlpath&#x3D;&#39;C:\Users\Nexus\AppData\Roaming\Mathematica\Applications\Matlab_Mathematica_Link&#39;; % The directory where mathlink.h ismllib&#x3D;&#39;C:\Users\Nexus\AppData\Roaming\Mathematica\Applications\Matlab_Mathematica_Link\ml64i3m.lib&#39;; %The library ml32i1m.lib%make commandcommand&#x3D;sprintf(&#39;mex -D__STDC__ -I%s %s %s&#39;, mlpath, &#39;math.c&#39;, mllib);%compileeval(command)  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li><p>随后可根据testscript.m进行测试</p></li><li><p>Matlab初次调用Mathematica函数时，选择Mathematica安装目录下的MathKernel.exe或Math.exe文件</p></li><li><p>Mathematica.md自定义函数如何编辑</p><ul><li>创建.txt文件编辑函数，改后缀为.md</li><li>文件名须与函数名同名</li><li>.md文件放置于Matlab_Mathematica_Link中</li></ul></li><li><p>测试代码1</p><pre class="line-numbers language-none"><code class="language-none">.md:myfunction[a0_, b0_, c0_] :&#x3D;Module[&#123;a&#x3D;a0,b&#x3D;b0,c&#x3D;c0&#125;,d&#x3D;a+b;e&#x3D;a+c;f&#x3D;c;y&#x3D;d+e+f;y].m:math(&#39;$Version&#39;);math(&#39;&lt;&lt;myfunction.nb&#39;)math(&#39;myfunction[1,1,1]&#39;)math(&#39;quit&#39;)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li><p>关于Matlab_Mathematica_Link文件夹</p><ul><li>MATLAB中完成MEX需要设置路径C:\Users\AylmYi\AppData\Roaming\Mathematica\Applications\MATLink</li><li>.md文件存放至C:\Program Files\MATLAB\R2018b\Matlab_Mathematica_Link中</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mathematica </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> MATLAB </tag>
+            
+            <tag> Mathematica </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Mathematica软件入门</title>
+      <link href="/2023/09/19/mathematica/"/>
+      <url>/2023/09/19/mathematica/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Mathematica-入门"><a href="#Mathematica-入门" class="headerlink" title="Mathematica 入门"></a>Mathematica 入门</h2><ul><li><a href="https://www.bilibili.com/video/BV1oh411d7XB/?spm_id_from=333.337.search-card.all.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">入门教程</a></li></ul><h3 id="1-1-基础运算"><a href="#1-1-基础运算" class="headerlink" title="1.1 基础运算"></a>1.1 基础运算</h3><ul><li>Shift+Enter 运算</li><li>函数开头大写字母:Sqrt[13],Cos,Log,ArcTan[1]</li><li>计算式化简<ul><li>Simplify[XXX]</li><li>XXX &#x2F;&#x2F;Simplify</li></ul></li><li>附加条件: Assumptions -&gt; { a&gt;0 , b&lt;0 }</li><li>分解因式：Factor[]</li><li>数据传递<ul><li>test&#x3D;(2+t)(15+t)</li><li>t&#x3D;a</li><li>此时 test&#x3D;(2+a)(15+a)</li><li>t&#x3D;. 该命令将重置 t&#x3D;t</li><li>test&#x3D;(2+t)(15+t)</li></ul></li><li>类似 matlab 的帮助命令： ? Simplify</li></ul><h3 id="1-2-逻辑运算"><a href="#1-2-逻辑运算" class="headerlink" title="1.2 逻辑运算"></a>1.2 逻辑运算</h3><ul><li>与或非: &amp;&amp; || !</li><li>If[ True&#x2F;False , 4,-2]<ul><li>a&gt;b?4:-2</li></ul></li></ul><h3 id="1-3-解方程-微分-积分-微分方程"><a href="#1-3-解方程-微分-积分-微分方程" class="headerlink" title="1.3 解方程|微分|积分|微分方程"></a>1.3 解方程|微分|积分|微分方程</h3><h3 id="1-3-1-解方程"><a href="#1-3-1-解方程" class="headerlink" title="1.3.1 解方程"></a>1.3.1 解方程</h3><ul><li>方程<ul><li>Solve[a x^2+b x+c&#x3D;&#x3D;0,x]</li><li>系数与 x 分隔开</li><li>用&#x3D;&#x3D;号</li></ul></li><li>方程组<ul><li>Solve[ {Eq.1 , Eq.2} , {t,m} ]</li><li>Attention! 解方程需要参数不能有赋值，t&#x3D;.</li></ul></li></ul><h3 id="1-3-2-微积分"><a href="#1-3-2-微积分" class="headerlink" title="1.3.2 微积分"></a>1.3.2 微积分</h3><ul><li><p>求导 D[f(t),t]</p></li><li><p>积分 Integrate[f(t),t]</p></li><li><p>级数展开 Series[]</p></li><li><p>函数嵌套的多种形式</p><ul><li>F[f]</li><li>f&#x2F;&#x2F;F</li><li>F[x,t]</li><li>x &#x2F;&#x2F; F[#,t]&amp;</li></ul></li><li><p>极限 Limit[f(x), x-&gt;0]</p></li><li><p>函数定义 f[ t_ ] :&#x3D; t^2-t</p></li><li><p>解微分方程 DSolve[ Eq.1 , f[x] , x]</p></li></ul><h3 id="1-4-矩阵列表运算"><a href="#1-4-矩阵列表运算" class="headerlink" title="1.4 矩阵列表运算"></a>1.4 矩阵列表运算</h3><ul><li>B&#x3D;Table[f[i + 1, j] + 2, {i, 1, 4}, {j, 1, 3}]<ul><li>i,j 分别取行列</li></ul></li><li>矩阵形式:B &#x2F;&#x2F;Matrix</li><li>列表取值<ul><li>B[[ 1,1 ]]</li><li>B[[ 3,;; ]]</li><li>B[[ ;;,2 ]]</li></ul></li><li>矩阵运算<ul><li>A.B 矩阵相乘</li></ul></li></ul><h3 id="1-5-替换"><a href="#1-5-替换" class="headerlink" title="1.5 替换"></a>1.5 替换</h3><h3 id="1-6-输入输出"><a href="#1-6-输入输出" class="headerlink" title="1.6 输入输出"></a>1.6 输入输出</h3>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mathematica </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Mathematica </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>COMSOL入门</title>
+      <link href="/2023/08/24/comsol-ru-men/"/>
+      <url>/2023/08/24/comsol-ru-men/</url>
+      
+        <content type="html"><![CDATA[<h1 id="快速上手COMSOL"><a href="#快速上手COMSOL" class="headerlink" title="快速上手COMSOL"></a>快速上手COMSOL</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1K44y1v7Vx/?spm_id_from=333.880.my_history.page.click">COMSOL三天培训课</a></li></ul><h2 id="1-COMSOL初识"><a href="#1-COMSOL初识" class="headerlink" title="1 COMSOL初识"></a>1 COMSOL初识</h2><h3 id="1-1-COMSOL软件产品库"><a href="#1-1-COMSOL软件产品库" class="headerlink" title="1.1 COMSOL软件产品库"></a>1.1 COMSOL软件产品库</h3><ul><li>COMSOL multiphysics</li><li>comsol compiler - 开发独立执行的仿真app .exe</li></ul><h3 id="1-2-COMSOL工作流程"><a href="#1-2-COMSOL工作流程" class="headerlink" title="1.2 COMSOL工作流程"></a>1.2 COMSOL工作流程</h3><ul><li>前处理&#x2F;计算&#x2F;后处理</li><li></li><li><strong>定义求解的问题类型</strong></li><li>绘制（导入）CAD几何</li><li>定义每个求解域的材料属性</li><li>设定 载荷和边界条件</li><li>网格剖分</li><li>求解模型SOLUTION</li><li>后处理和报告结果</li><li>修改与优化（从哪些角度参考优化）<ul><li>实验与仿真结合</li><li>其他的仿真软件，结果对比</li><li>查文献</li><li>运用守恒定律</li></ul></li></ul><h3 id="1-3-进入软件"><a href="#1-3-进入软件" class="headerlink" title="1.3 进入软件"></a>1.3 进入软件</h3><ul><li><p>首选项设置</p><ul><li>图形和绘图窗口-渲染设置OpenGL使用显卡，显卡差使用软件</li><li>设置临时文件夹和恢复文件夹</li></ul></li><li><p>1 添加几何体</p><ul><li><p>左键改变视角，右键移动中心点，中键滚轮缩放视角</p></li><li><p>图形窗口中的各项功能</p><ul><li><strong>图像快照，导出图片</strong></li></ul></li></ul></li><li><p>2 定义材料</p><ul><li>添加库中材料</li><li>材料有自己的基本属性<ul><li>所用物理场的属性会标有记号</li><li>属性值若缺失，需要通过实验测量或阅读文献来补充缺失的属性值</li></ul></li></ul></li><li><p>3 设置物理场</p><ul><li>域条件</li><li>边界条件<ul><li>选择面，设置值</li></ul></li></ul></li><li><p>4 网格绘制</p></li><li><p>5 计算</p><ul><li>得结果</li></ul></li><li><p>6 结果</p></li></ul><h2 id="2-COMSOL几何建模"><a href="#2-COMSOL几何建模" class="headerlink" title="2 COMSOL几何建模"></a>2 COMSOL几何建模</h2><h3 id="2-1-几何建模"><a href="#2-1-几何建模" class="headerlink" title="2.1 几何建模"></a>2.1 几何建模</h3><ul><li>二维基本形状</li><li>缩放拉伸、阵列拷贝、镜像翻转</li><li>布尔运算</li></ul><h3 id="2-2-随机函数获得粗糙线-面"><a href="#2-2-随机函数获得粗糙线-面" class="headerlink" title="2.2 随机函数获得粗糙线|面"></a>2.2 随机函数获得粗糙线|面</h3><ul><li>定义随机函数</li><li>几何中构建参数化曲线|曲面（两个变元）</li><li>几何进行分割域</li><li>删除域实体</li></ul><h3 id="2-3-从三维实体提取二维结构"><a href="#2-3-从三维实体提取二维结构" class="headerlink" title="2.3 从三维实体提取二维结构"></a>2.3 从三维实体提取二维结构</h3><ul><li><p>添加新的二维组件</p></li><li><p>选择横截面，选取三维实体的某一面</p></li><li><p>层的概念</p><ul><li>对于一些波的吸收处理<ul><li>电磁波，矢量波动方程</li><li>声波，标量</li><li>机械波，横纵波</li></ul></li><li>因几何距离不会无限大，波的反射会影响到发射端，所以要吸收</li><li>最外围加入 层（PML） 的域，用以吸收波</li></ul></li></ul><h3 id="2-4-联合体与装配体"><a href="#2-4-联合体与装配体" class="headerlink" title="2.4 联合体与装配体"></a>2.4 联合体与装配体</h3><ul><li>默认形成联合体，物理量会自动连续在一起的</li><li>改成装配体，物理量不连续，会用 对 在分界处形成强制连续</li><li>必须使用装配体<ul><li>当两个对象形成接触<ul><li>形成装配体能产生<strong>接触对</strong></li></ul></li><li>求解域绕其他域旋转<ul><li>形成装配体能产生<strong>一致对</strong></li><li>旋转电磁场（AC&#x2F;DC Module）</li><li>流体旋转</li></ul></li></ul></li><li>不能使用装配体<ul><li>求解旋度-旋度方程的物理场（如Maxwell）<ul><li>三维电磁波（RF和波动光学模块）|| 二维电磁波可用</li><li>所有的三维磁矢场方程（AC&#x2F;DC模块）|| 三维磁标场可用</li></ul></li></ul></li></ul><h3 id="2-5-几何建模的五点原则"><a href="#2-5-几何建模的五点原则" class="headerlink" title="2.5 几何建模的五点原则"></a>2.5 <strong>几何建模的五点原则</strong></h3><ul><li><p>处理点接触</p><ul><li>奇异点处压强无限大</li><li>间隙隔开，或点改面 重叠</li><li>一般使用间隙或重叠取代，分析间隙越来越小时的结果</li></ul></li><li><p>大尺度比例关系</p><ul><li>如厚度很薄的桌子实体，很细的长杆</li><li>二维下，Lmax &gt;&gt; 1000Lmin</li><li>三维下，Lmax &gt;&gt; 100Lmin</li><li>若不关心最小的特征，删除最小的特征，或假设在一个（或两个）维度方向上忽略结果的变化</li><li>如螺丝螺栓螺钉，特别小，在仿真时毫无作用</li></ul></li><li><p>薄层结构</p><ul><li>如一个立方体，中间本应有一薄层，几何绘制中不需要画出，可以在边界条件中选择薄层处理</li><li>基本上所有物理场接口中都能将薄层材料处理成边界条件</li></ul></li><li><p>简化处理不必要的细节</p><ul><li>如一些刻字等Logo，标识符等，仿真时不关系这些地方的物理量分布，但它们的存在会极大地影响网格</li></ul></li><li><p>处理角部细节</p><ul><li>如一些矩形块，边缘不稳定，可以改成圆角处理</li></ul></li></ul><h3 id="2-6-CAD导入"><a href="#2-6-CAD导入" class="headerlink" title="2.6 CAD导入"></a>2.6 CAD导入</h3><ul><li>保留分析所需的重要特征</li><li>避免装饰性结构</li><li>在CAD源文件上进行修改</li></ul><h3 id="2-7-数据修复操作"><a href="#2-7-数据修复操作" class="headerlink" title="2.7 数据修复操作"></a>2.7 数据修复操作</h3><ul><li>删除面，不关心的，有洞可以填满</li><li>删除圆角</li><li>删除短边，细长小面，楔形</li><li>忽略边，形成组合面</li><li>忽略面，形成组合域</li><li>忽略边、面，融合端点、边</li></ul><h2 id="3-网格剖分"><a href="#3-网格剖分" class="headerlink" title="3 网格剖分"></a>3 网格剖分</h2><h3 id="3-1-为啥需要网格"><a href="#3-1-为啥需要网格" class="headerlink" title="3.1 为啥需要网格"></a>3.1 为啥需要网格</h3><ul><li>网格元素，有限元（算顶点值）基于几何离散化为小的单位</li><li>有限元网格的目的<ul><li>表征几何</li><li>表征求解域</li></ul></li><li>更多的单元意味着<ul><li>更精确的近似和求解</li><li>更长的求解时间和更多的内存需求</li></ul></li></ul><h3 id="3-2-需要多少个单元"><a href="#3-2-需要多少个单元" class="headerlink" title="3.2 需要多少个单元"></a>3.2 需要多少个单元</h3><ul><li>事先并不清楚</li><li>需要有足够的精细度<ul><li>能充分描述几何</li><li>解析所有结果的梯度</li></ul></li><li>加密（密集程度）网格单元数后，网格会趋向收敛</li></ul><h3 id="3-3-三种网格剖分方法"><a href="#3-3-三种网格剖分方法" class="headerlink" title="3.3 三种网格剖分方法"></a>3.3 三种网格剖分方法</h3><ul><li><p>基于物理场智能剖分网格</p><ul><li>用于流体流动、等离子体和半导体建模</li><li>上述三种物理场都不易收敛，都麻烦</li><li>内置一套算法</li></ul></li><li><p>自适应网格细化</p></li><li><p>重点-<strong>用户控制部分具有完全的控制</strong></p></li></ul><h3 id="3-4-网格特征"><a href="#3-4-网格特征" class="headerlink" title="3.4 网格特征"></a>3.4 网格特征</h3><ul><li>该密则密-物理量在某空间 变化较大 的地方要加密，如边界处，速度降为0，外壁，内壁，表面边界线</li><li>类似于梯度大处的地方，物理量变化大的加密，非物理量数值大的地方</li><li>联合体与装配体的网格区别<ul><li>联合体中，两个域边界相连，是连续的</li><li>装配体中，相连边界的网格不连续，会出错<ul><li>添加一致边界对，能强迫连续</li></ul></li></ul></li></ul><h3 id="3-5-网格操作"><a href="#3-5-网格操作" class="headerlink" title="3.5 网格操作"></a>3.5 网格操作</h3><ul><li>可以对一个几何中的多个域分别设置网格大小<ul><li>手动设值一般只注重最大单元大小</li></ul></li><li>对不同的域，可以分别剖分成三角形网格和四边形网格</li><li>映射的网格非常规整，可设置横纵单元数目</li><li>转换-将四边形网格，添加对角边或中心点，形成三角形</li><li>边界条件中，边界层网格加密<ul><li>提取边，边通常是成对出现，复制边</li><li>构建网格，设置边界处的网格加密</li></ul></li></ul><h3 id="3-6-二维网格"><a href="#3-6-二维网格" class="headerlink" title="3.6 二维网格"></a>3.6 二维网格</h3><ul><li>行波电磁波示例</li><li>添加各种边界条件（散射边界、周期性条件）</li><li>观察结果中的默认数据图，选择主要视角的数据</li><li>离散化选项中 二次（除了顶点数据值，还计算两点的中点，精度高）改成线性单元后</li><li>控制最大单元大小， lamd&#x2F;h1</li><li>参数化扫描h1，参数h1数值能影响结果的准确和精度，对应知识点 3.2</li></ul><h3 id="3-7-三维网格"><a href="#3-7-三维网格" class="headerlink" title="3.7 三维网格"></a>3.7 三维网格</h3><ul><li>如何判断网格好坏<ul><li>右键网格，选择绘制</li><li>网格越绿越好，利用单元过滤可以观察内部网格情况</li><li>右键网格，选择统计信息，也可以观察网格质量状况</li></ul></li><li>扫描网格，类似于二维的映射，非常规整，使用的前提是几何满足，能够规整化</li><li>也能对一面先进行三角形网格，再进行扫描网格</li></ul><h3 id="3-8-网格注意"><a href="#3-8-网格注意" class="headerlink" title="3.8 网格注意"></a>3.8 网格注意</h3><ul><li>二维映射网格需要满足一些基本条件</li><li>如果一开始不满足这些条件，一般需要修改后再映射生成网格</li><li>如一个矩形下端截去一个半圆，需要两条斜线将几何分为三个域，满足基本条件后再进行映射生成</li><li>扫掠网格，即三维中的映射</li><li>边界层网格</li><li>奇异点和圆角处理，奇异点处不能不处理，也不宜过于精细处理</li><li>薄区域，可通过边界条件来表征，不一定需要画出厚度</li><li>高长径比-如弹簧，长度远大于直径，如2.5 中第二条</li><li>斜接触，改小间隙，或小重叠，如2.5中第一条</li><li>分割，复杂几何体，使用扫掠网格，分割出子区域，对重点区域加密</li><li>多余的细节删除，删除不必要的小特征，如Logo、标识</li></ul><h3 id="3-9-软件自学"><a href="#3-9-软件自学" class="headerlink" title="3.9 软件自学"></a>3.9 软件自学</h3><ul><li><p>文件内置有案例库，可以打开模型和PDF文档，可以学习模型复现，案例库可更新</p></li><li><p>帮助文档，在软件安装位置的Multiphysics\doc\pdf</p><ul><li>推荐说明书<ul><li>IntroductionToCOMSOLMultiphysics</li><li>COMSOL_ReferenceManual</li></ul></li><li><a href="https://www.bilibili.com/read/cv5523730/?from=search&spm_id_from=333.337.0.0">将COMSOL的帮助文档设置为中文</a></li></ul></li><li><p><a href="https://cn.comsol.com/">COMSOL官网</a></p><ul><li><a href="https://cn.comsol.com/models">案例下载</a></li><li><a href="https://cn.comsol.com/blogs">博客</a></li><li><a href="https://cn.comsol.com/forum">全球论坛</a></li></ul></li><li><p>网格序列练习</p><ul><li>两方体中间有不规则的球体阵列</li><li>先用四面体画不规则的球体</li><li>再对球体连接的上下两面画三角形剖分</li><li>最后对剩余规整方体进行扫掠</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> COMSOL </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> COMSOL </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>SolidWorks装配体</title>
       <link href="/2023/08/13/solidworks-zhuang-pei-ti/"/>
       <url>/2023/08/13/solidworks-zhuang-pei-ti/</url>
@@ -104,25 +181,23 @@
     
     
     <entry>
-      <title>Pr调色曲线</title>
-      <link href="/2023/06/23/matlab-tong-yong-ke/"/>
-      <url>/2023/06/23/matlab-tong-yong-ke/</url>
+      <title>Matlab通用课</title>
+      <link href="/2023/07/02/matlab-tong-yong-ke/"/>
+      <url>/2023/07/02/matlab-tong-yong-ke/</url>
       
         <content type="html"><![CDATA[<p>1-基本操作与矩阵输入</p><pre><code>format-设置显示输出格式 - format + XXX    DEFAULT:  format short    long    shortE    longE    rat分号作用    命令行中不显示结果常见Func    clc-清空命令行显示    clear-清楚工作区数值    who-工作区变量    whos-工作区变量形式Array Indexing-矩阵取序值Colon Operator (:)    j:k   ~&gt;  j j+1 j+2 ... k    j:i:k ~&gt; j j+i j+2i j+m*i    A(3,:) --矩阵的第三行row所有    A(:,2) --矩阵的第二列col所有Array Concatenation 串联拼接    A B    C=[A B]    D=[A;B]Array Manipulation 操作运算    + - *    A/B  约等于 A× inv(B)    .* 对应位置相乘    ./ 对应位置相除    实数a        A^a  A^2 A*A        A.^a     C=A&#39;  矩阵转置特殊矩阵    eye(n)   对角线全为1    zeros(n1,n2)    ones(n1,n2)    diag([2,3,4]) 对角线上为2，3，4矩阵矩阵Function    最值求和平均        max(A)  每个列col 找出最大        max(max(A))        sum(A)  每个列col求和        mean(A)  每个列col求平均    排序长宽查找        sort(A) 每个元素独立，对每列col排序        sortrows(A)  保留行向量关系，对第一列col排序        size(A)  返回出 row_num col_num        length(A)         find(A==5)  返回索引号</code></pre><p>2-结构化程式与自定义函数<br>    Script Writing<br>        注解操作<br>            注释 CTRL + R &#x2F; T<br>            %% 构建Section 便于分节检查<br>            智能缩进  CTRL + I</p><pre><code>Structured  programming    Flow Control        if | elseif | else        for        switch | case | otherwise        while        break        continue        end        pause        return    Relational Operators        &lt; | &lt;= | &gt; | &gt;=        == | ~=        &amp;&amp; 与或 ||    if elseif else        if condition1            Statement1        elseif c2            S2        else            S3        end    switch        switch expression        case value1            statement1        case v2            s2        otherwise            statement disp(&#39;other value&#39;)        end    while        while expression            statement        end    Pre allocating 预分配思想        A=zeros(2000,2000);Tips for Script Writing    开始处清空        clear all - remove variables        close all - close figures        clc - 清空命令行    semicolon; 不在命令行中显示    ellipsis...  换行的连续符    运行中使用CTRL + C可以 宕机后跳出FunctionsFunction Handles-Pointer</code></pre><p>3-变量与文件读写<br>    char-‘H’ ‘h’<br>    string<br>        s1&#x3D;’Example’<br>        s2&#x3D;’String’<br>        s3&#x3D;[s1 s2]</p><pre><code>Structure    结构体    结构体再嵌套结构体Cell Array    用大括号&#123;&#125;        A(1,1)=&#123;X&#125;        A&#123;1,1&#125;=X        num2cell()        mat2cell()Functions    concatenation-cat()        A=[1 2;3 4;] B=[5 6;7 8;]        C=cat(1,A,B) row方向接        C=cat(2,A,B) col方向接        C=cat(3,A,B) layer方向接    reshape()        A=&#123;&#39;1&#39;,2,magic(3),pi&#125;;        reshape(A,1,4)    is_Function判断是否为某变量类型File Access    Mat Data        save        load    Text        save        load    Excel        xlsread        xlswrite</code></pre>]]></content>
       
       
       <categories>
           
-          <category> Pr </category>
+          <category> Matlab </category>
           
       </categories>
       
       
         <tags>
             
-            <tag> Pr </tag>
-            
-            <tag> 调色 </tag>
+            <tag> Matlab </tag>
             
         </tags>
       
@@ -152,19 +227,6 @@
             <tag> 调色 </tag>
             
         </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Hello World</title>
-      <link href="/2023/06/21/hello-world/"/>
-      <url>/2023/06/21/hello-world/</url>
-      
-        <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo generate<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo deploy<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
-      
-      
       
     </entry>
     
