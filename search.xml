@@ -31,6 +31,31 @@
     
     
     <entry>
+      <title>Mathematica软件入门</title>
+      <link href="/2023/09/19/mathematica/"/>
+      <url>/2023/09/19/mathematica/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Mathematica-入门"><a href="#Mathematica-入门" class="headerlink" title="Mathematica 入门"></a>Mathematica 入门</h2><ul><li><a href="https://www.bilibili.com/video/BV1oh411d7XB/?spm_id_from=333.337.search-card.all.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">入门教程</a></li></ul><h3 id="1-1-基础运算"><a href="#1-1-基础运算" class="headerlink" title="1.1 基础运算"></a>1.1 基础运算</h3><ul><li>Shift+Enter 运算</li><li>函数开头大写字母:Sqrt[13],Cos,Log,ArcTan[1]</li><li>计算式化简<ul><li>Simplify[XXX]</li><li>XXX &#x2F;&#x2F;Simplify</li></ul></li><li>附加条件: Assumptions -&gt; { a&gt;0 , b&lt;0 }</li><li>分解因式：Factor[]</li><li>数据传递<ul><li>test&#x3D;(2+t)(15+t)</li><li>t&#x3D;a</li><li>此时 test&#x3D;(2+a)(15+a)</li><li>t&#x3D;. 该命令将重置 t&#x3D;t</li><li>test&#x3D;(2+t)(15+t)</li></ul></li><li>类似 matlab 的帮助命令： ? Simplify</li></ul><h3 id="1-2-逻辑运算"><a href="#1-2-逻辑运算" class="headerlink" title="1.2 逻辑运算"></a>1.2 逻辑运算</h3><ul><li>与或非: &amp;&amp; || !</li><li>If[ True&#x2F;False , 4,-2]<ul><li>a&gt;b?4:-2</li></ul></li></ul><h3 id="1-3-解方程-微分-积分-微分方程"><a href="#1-3-解方程-微分-积分-微分方程" class="headerlink" title="1.3 解方程|微分|积分|微分方程"></a>1.3 解方程|微分|积分|微分方程</h3><h3 id="1-3-1-解方程"><a href="#1-3-1-解方程" class="headerlink" title="1.3.1 解方程"></a>1.3.1 解方程</h3><ul><li>方程<ul><li>Solve[a x^2+b x+c&#x3D;&#x3D;0,x]</li><li>系数与 x 分隔开</li><li>用&#x3D;&#x3D;号</li></ul></li><li>方程组<ul><li>Solve[ {Eq.1 , Eq.2} , {t,m} ]</li><li>Attention! 解方程需要参数不能有赋值，t&#x3D;.</li></ul></li></ul><h3 id="1-3-2-微积分"><a href="#1-3-2-微积分" class="headerlink" title="1.3.2 微积分"></a>1.3.2 微积分</h3><ul><li><p>求导 D[f(t),t]</p></li><li><p>积分 Integrate[f(t),t]</p></li><li><p>级数展开 Series[]</p></li><li><p>函数嵌套的多种形式</p><ul><li>F[f]</li><li>f&#x2F;&#x2F;F</li><li>F[x,t]</li><li>x &#x2F;&#x2F; F[#,t]&amp;</li></ul></li><li><p>极限 Limit[f(x), x-&gt;0]</p></li><li><p>函数定义 f[ t_ ] :&#x3D; t^2-t</p></li><li><p>解微分方程 DSolve[ Eq.1 , f[x] , x]</p></li></ul><h3 id="1-4-矩阵列表运算"><a href="#1-4-矩阵列表运算" class="headerlink" title="1.4 矩阵列表运算"></a>1.4 矩阵列表运算</h3><ul><li>B&#x3D;Table[f[i + 1, j] + 2, {i, 1, 4}, {j, 1, 3}]<ul><li>i,j 分别取行列</li></ul></li><li>矩阵形式:B &#x2F;&#x2F;Matrix</li><li>列表取值<ul><li>B[[ 1,1 ]]</li><li>B[[ 3,;; ]]</li><li>B[[ ;;,2 ]]</li></ul></li><li>矩阵运算<ul><li>A.B 矩阵相乘</li></ul></li></ul><h3 id="1-5-替换"><a href="#1-5-替换" class="headerlink" title="1.5 替换"></a>1.5 替换</h3><h3 id="1-6-输入输出"><a href="#1-6-输入输出" class="headerlink" title="1.6 输入输出"></a>1.6 输入输出</h3>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mathematica </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Mathematica </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>COMSOL入门</title>
       <link href="/2023/08/24/comsol-ru-men/"/>
       <url>/2023/08/24/comsol-ru-men/</url>
