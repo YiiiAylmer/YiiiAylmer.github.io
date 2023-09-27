@@ -403,14 +403,14 @@ XXX &amp;#x2F;&amp;#x2F;Sim">
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    340
+                    591
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    1 分
+                    2 分
                 </div>
                 
 
@@ -501,16 +501,45 @@ XXX &amp;#x2F;&amp;#x2F;Sim">
 <li>矩阵形式:B &#x2F;&#x2F;Matrix</li>
 <li>列表取值<ul>
 <li>B[[ 1,1 ]]</li>
-<li>B[[ 3,;; ]]</li>
-<li>B[[ ;;,2 ]]</li>
+<li>B[[ 3,;; ]] 第3行</li>
+<li>B[[ ;;,2 ]] 第2列</li>
 </ul>
 </li>
 <li>矩阵运算<ul>
 <li>A.B 矩阵相乘</li>
+<li>求特征值-Eigenvalues[B]</li>
+<li>求特征向量-Eigenvectors[B]</li>
+<li>行列式-Det[B]</li>
+<li>转置-Transpose[B]</li>
+<li>逆矩阵-Inverse[B]</li>
+<li>行列不同的列表 Table[i+j,{i,1,4},{j,1,i}]</li>
 </ul>
 </li>
 </ul>
-<h3 id="1-5-替换"><a href="#1-5-替换" class="headerlink" title="1.5 替换"></a>1.5 替换</h3><h3 id="1-6-输入输出"><a href="#1-6-输入输出" class="headerlink" title="1.6 输入输出"></a>1.6 输入输出</h3>
+<h3 id="1-5-替换"><a href="#1-5-替换" class="headerlink" title="1.5 替换"></a>1.5 替换</h3><ul>
+<li>应用<ul>
+<li>可以替换函数映射关系</li>
+<li>可以去除函数映射关系</li>
+</ul>
+</li>
+<li>使用test&#x3D;{ {c[2],c[3]} {c[3],c[4]} }<ul>
+<li>修改函数映射关系: test &#x2F;.c-&gt;f  c[2]变为f[2]</li>
+<li>消去函数映射关系：test &#x2F;.c[p_]-&gt;p c[2]变为2</li>
+<li>等价于 ReplaceAll[ test , c[p_]-&gt;p ]</li>
+<li>y[c, c, 3, c, 51, c, c, 3] &#x2F;&#x2F;. y[n1___, c, n2___] -&gt; y[n1, n2] 该语句能去除所有c，两个__代表至少有一元素的一列元素，三个___可以代表有0个元素的列元素</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-6-输入输出"><a href="#1-6-输入输出" class="headerlink" title="1.6 输入输出"></a>1.6 输入输出</h3><ul>
+<li>SetDirectory[NotebookDirectory[] ];设置为当前目录</li>
+<li>Export[“..&#x2F;test.m”,t] t输出保存到test.m文件中</li>
+<li>一组文件<ul>
+<li>Do[Export[“test”&lt;&gt;ToString[i]&lt;&gt;”.m”,t[i]]]</li>
+<li>&lt;&gt;即连接字符串，将会生成test1.m,test2.m,test3.m多个文件</li>
+</ul>
+</li>
+</ul>
+
                 
             </div>
             <hr/>
@@ -911,7 +940,7 @@ XXX &amp;#x2F;&amp;#x2F;Sim">
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">9.7k</span>
+                        class="white-color">10.7k</span>
             
             
             
