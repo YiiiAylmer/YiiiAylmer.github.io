@@ -4,17 +4,19 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Matlab通用课, Aylmer Yiii">
-    <meta name="description" content="1-基本操作与矩阵输入
-format-设置显示输出格式 - format + XXX
-    DEFAULT:  format short
-    long
-    shortE
-    longE
-    rat
+    <meta name="keywords" content="SolidWorks装配体, Aylmer Yiii">
+    <meta name="description" content="SolidWorks装配体参考资料：
 
-分号作用
-    命令">
+阿奇设计分享
+学习地图
+练习题
+
+1 装配体1.1 装配体基础
+装配体是与零件不同的文件类型，由多个零件配合组成
+
+界面与零件中类似，在设计树中，零件包含特征应用，装配体中包含各种零件和子装配体
+
+装">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -26,7 +28,7 @@ format-设置显示输出格式 - format + XXX
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Matlab通用课 | Aylmer Yiii</title>
+    <title>SolidWorks装配体 | Aylmer Yiii</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -341,12 +343,12 @@ format-设置显示输出格式 - format + XXX
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/5.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Matlab通用课</h1>
+                    <h1 class="description center-align post-title">SolidWorks装配体</h1>
                 </div>
             </div>
         </div>
@@ -370,8 +372,8 @@ format-设置显示输出格式 - format + XXX
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/Matlab/">
-                                <span class="chip bg-color">Matlab</span>
+                            <a href="/tags/SolidWorks/">
+                                <span class="chip bg-color">SolidWorks</span>
                             </a>
                         
                     </div>
@@ -382,8 +384,8 @@ format-设置显示输出格式 - format + XXX
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/Matlab/" class="post-category">
-                                Matlab
+                            <a href="/categories/SolidWorks/" class="post-category">
+                                SolidWorks
                             </a>
                         
                     </div>
@@ -395,7 +397,7 @@ format-设置显示输出格式 - format + XXX
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-07-02
+                    2023-08-13
                 </div>
                 
 
@@ -404,14 +406,14 @@ format-设置显示输出格式 - format + XXX
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    611
+                    1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    2 分
+                    3 分
                 </div>
                 
 
@@ -429,171 +431,111 @@ format-设置显示输出格式 - format + XXX
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>1-基本操作与矩阵输入</p>
-<pre><code>format-设置显示输出格式 - format + XXX
-    DEFAULT:  format short
-    long
-    shortE
-    longE
-    rat
-
-分号作用
-    命令行中不显示结果
-
-常见Func
-    clc-清空命令行显示
-    clear-清楚工作区数值
-    who-工作区变量
-    whos-工作区变量形式
-
-Array Indexing-矩阵取序值
-Colon Operator (:)
-    j:k   ~&gt;  j j+1 j+2 ... k
-    j:i:k ~&gt; j j+i j+2i j+m*i
-    A(3,:) --矩阵的第三行row所有
-    A(:,2) --矩阵的第二列col所有
-
-Array Concatenation 串联拼接
-    A B
-    C=[A B]
-    D=[A;B]
-
-Array Manipulation 操作运算
-    + - *
-    A/B  约等于 A× inv(B)
-    .* 对应位置相乘
-    ./ 对应位置相除
-    实数a
-        A^a  A^2 A*A
-        A.^a 
-
-    C=A&#39;  矩阵转置
-
-特殊矩阵
-    eye(n)   对角线全为1
-    zeros(n1,n2)
-    ones(n1,n2)
-    diag([2,3,4]) 对角线上为2，3，4矩阵
-
-矩阵Function
-    最值求和平均
-        max(A)  每个列col 找出最大
-        max(max(A))
-        sum(A)  每个列col求和
-        mean(A)  每个列col求平均
-
-    排序长宽查找
-        sort(A) 每个元素独立，对每列col排序
-        sortrows(A)  保留行向量关系，对第一列col排序
-        size(A)  返回出 row_num col_num
-        length(A) 
-        find(A==5)  返回索引号
-</code></pre>
-<p>2-结构化程式与自定义函数<br>    Script Writing<br>        注解操作<br>            注释 CTRL + R &#x2F; T<br>            %% 构建Section 便于分节检查<br>            智能缩进  CTRL + I</p>
-<pre><code>Structured  programming
-    Flow Control
-        if | elseif | else
-        for
-        switch | case | otherwise
-        while
-        break
-        continue
-        end
-        pause
-        return
-
-    Relational Operators
-        &lt; | &lt;= | &gt; | &gt;=
-        == | ~=
-        &amp;&amp; 与或 ||
-
-    if elseif else
-        if condition1
-            Statement1
-
-        elseif c2
-            S2
-
-        else
-            S3
-
-        end
-
-    switch
-        switch expression
-        case value1
-            statement1
-
-        case v2
-            s2
-
-        otherwise
-            statement disp(&#39;other value&#39;)
-
-        end
-
-    while
-        while expression
-            statement
-
-        end
-
-    Pre allocating 预分配思想
-        A=zeros(2000,2000);
-
-
-Tips for Script Writing
-    开始处清空
-        clear all - remove variables
-        close all - close figures
-        clc - 清空命令行
-
-    semicolon; 不在命令行中显示
-    ellipsis...  换行的连续符
-    运行中使用CTRL + C可以 宕机后跳出
-
-Functions
-Function Handles-Pointer
-</code></pre>
-<p>3-变量与文件读写<br>    char-‘H’ ‘h’<br>    string<br>        s1&#x3D;’Example’<br>        s2&#x3D;’String’<br>        s3&#x3D;[s1 s2]</p>
-<pre><code>Structure
-    结构体
-    结构体再嵌套结构体
-
-Cell Array
-    用大括号&#123;&#125;
-        A(1,1)=&#123;X&#125;
-        A&#123;1,1&#125;=X
-        num2cell()
-        mat2cell()
-
-
-Functions
-    concatenation-cat()
-        A=[1 2;3 4;] B=[5 6;7 8;]
-        C=cat(1,A,B) row方向接
-        C=cat(2,A,B) col方向接
-        C=cat(3,A,B) layer方向接
-
-    reshape()
-        A=&#123;&#39;1&#39;,2,magic(3),pi&#125;;
-        reshape(A,1,4)
-
-    is_Function判断是否为某变量类型
-
-File Access
-    Mat Data
-        save
-        load
-
-    Text
-        save
-        load
-
-    Excel
-        xlsread
-        xlswrite
-</code></pre>
+                <h1 id="SolidWorks装配体"><a href="#SolidWorks装配体" class="headerlink" title="SolidWorks装配体"></a>SolidWorks装配体</h1><p>参考资料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1iw411Z7HZ?p=10&vd_source=3b79726d0bfe11498e42e05d1b77f109">阿奇设计分享</a></li>
+<li><a target="_blank" rel="noopener" href="https://ifcski218x.feishu.cn/docx/WbhBdLwxYo06CUx4kCxcFTWbnyb">学习地图</a></li>
+<li><a target="_blank" rel="noopener" href="https://ifcski218x.feishu.cn/docx/ZITWdjgx8oMQUpxbmn9cIsDyn6d">练习题</a></li>
+</ul>
+<h2 id="1-装配体"><a href="#1-装配体" class="headerlink" title="1 装配体"></a>1 装配体</h2><h3 id="1-1-装配体基础"><a href="#1-1-装配体基础" class="headerlink" title="1.1 装配体基础"></a>1.1 装配体基础</h3><ul>
+<li><p>装配体是与零件不同的文件类型，由多个零件配合组成</p>
+</li>
+<li><p>界面与零件中类似，在设计树中，零件包含特征应用，装配体中包含各种零件和子装配体</p>
+</li>
+<li><p>装配体插入零件（4种）</p>
+<ul>
+<li>插入已打开的文件</li>
+<li>选择零件文件</li>
+<li>左右分屏时可以拖拽</li>
+<li>Ctrl拖动可以复制零件</li>
+</ul>
+</li>
+<li><p>切换视窗</p>
+<ul>
+<li>窗口选择</li>
+<li>Ctrl TAB</li>
+</ul>
+</li>
+<li><p>ATTENTION:第一个零件要手动打开文件插入，确保此零件和装配体基准面重合</p>
+</li>
+<li><p>零件左键拖动，右键旋转</p>
+</li>
+</ul>
+<h3 id="1-2-配合"><a href="#1-2-配合" class="headerlink" title="1.2 配合"></a>1.2 配合</h3><ul>
+<li>选择两零件要参考的，赋予关系，连续添加</li>
+<li>对于一零件，可编辑零件修改</li>
+</ul>
+<h2 id="2-标准配合"><a href="#2-标准配合" class="headerlink" title="2 标准配合"></a>2 标准配合</h2><h3 id="2-1-装配体中编辑零件"><a href="#2-1-装配体中编辑零件" class="headerlink" title="2.1 装配体中编辑零件"></a>2.1 装配体中编辑零件</h3><ul>
+<li>对零件可以再编辑</li>
+</ul>
+<h3 id="2-2-装配体中新建零件"><a href="#2-2-装配体中新建零件" class="headerlink" title="2.2 装配体中新建零件"></a>2.2 装配体中新建零件</h3><ul>
+<li>插入零件时，可以直接新建零件，之后，进入编辑零件模式编辑草图，完成特征</li>
+<li>零件创造后，可保存在装配体内，也可保存为引用链接的新文件</li>
+</ul>
+<h3 id="2-3-配合"><a href="#2-3-配合" class="headerlink" title="2.3 配合"></a>2.3 配合</h3><p>对两零件间的面设置配合关系</p>
+<ul>
+<li>重合-可选择基准面</li>
+<li>平行</li>
+<li>垂直</li>
+<li>距离设置与角度设置</li>
+<li>同轴心<ul>
+<li>对两个圆孔 设定同轴心，孔口对齐</li>
+<li>圆柱的同轴心还可以，与边线，与基准轴对齐</li>
+</ul>
+</li>
+<li>锁定</li>
+<li>(f)固定与浮动</li>
+</ul>
+<p>选择过滤器-空白处右键可以调用，仅能选择指定类型的特征使用</p>
+<h2 id="3-高级配合与机械配合"><a href="#3-高级配合与机械配合" class="headerlink" title="3 高级配合与机械配合"></a>3 高级配合与机械配合</h2><h3 id="3-1-高级配合"><a href="#3-1-高级配合" class="headerlink" title="3.1 高级配合"></a>3.1 高级配合</h3><ul>
+<li>宽度：设置两对面距离相等 &#x2F; 用于实现居中</li>
+<li>距离：设定两面的距离限制，角度限制，最大最小距离范围</li>
+<li>对称：</li>
+</ul>
+<h3 id="3-2-机械配合"><a href="#3-2-机械配合" class="headerlink" title="3.2 机械配合"></a>3.2 机械配合</h3><ul>
+<li>凸轮：先有凸轮零件，设置凸轮与凸轮推杆</li>
+<li>槽口：槽口表面与圆柱面</li>
+</ul>
+<h3 id="3-3-快捷菜单"><a href="#3-3-快捷菜单" class="headerlink" title="3.3 快捷菜单"></a>3.3 快捷菜单</h3><h3 id="3-4-隐藏，透明，压缩"><a href="#3-4-隐藏，透明，压缩" class="headerlink" title="3.4 隐藏，透明，压缩"></a>3.4 隐藏，透明，压缩</h3><ul>
+<li>隐藏：Tab快捷键</li>
+<li>透明：设置透明度，视角转移至无后置物时可选取</li>
+<li>压缩：零件消失，该状态下配合关系也缺失，可复原</li>
+</ul>
+<h2 id="4-附加课"><a href="#4-附加课" class="headerlink" title="4 附加课"></a>4 附加课</h2><h3 id="4-1-装配体内修改模型"><a href="#4-1-装配体内修改模型" class="headerlink" title="4.1 装配体内修改模型"></a>4.1 装配体内修改模型</h3><ul>
+<li>注意装配体、各零件的关系</li>
+<li>装配体中可以用草图切除零件，但此特征属于装配体，对零件源无影响</li>
+<li>修改模型要选择零件编辑，通过修改零件，来修改装配体</li>
+</ul>
+<h3 id="4-2-配合编辑"><a href="#4-2-配合编辑" class="headerlink" title="4.2 配合编辑"></a>4.2 配合编辑</h3><ul>
+<li>设计树中，通过 各零件的配合关系 或 配合总表 可以编辑</li>
+</ul>
+<h3 id="4-3-配合报错解决方法"><a href="#4-3-配合报错解决方法" class="headerlink" title="4.3 配合报错解决方法"></a>4.3 配合报错解决方法</h3><ul>
+<li>检查错误 要在设计树从上往下检查</li>
+<li>进入配合详情页修改错误</li>
+</ul>
+<h3 id="4-4-线性阵列与镜像"><a href="#4-4-线性阵列与镜像" class="headerlink" title="4.4 线性阵列与镜像"></a>4.4 线性阵列与镜像</h3><ul>
+<li>新建零件，绘制后会默认带有在位配合，即固定于一位置</li>
+<li>进入阵列编辑，选择复制的零部件，可引用边线或面来设置方向及参数</li>
+<li>选择两零件的元素，可快捷添加配合</li>
+<li>镜像-进入下一步后可预览</li>
+</ul>
+<h3 id="4-5-零件外观-上色"><a href="#4-5-零件外观-上色" class="headerlink" title="4.5  零件外观-上色"></a>4.5  零件外观-上色</h3><ul>
+<li>选择最下方的零件编辑对零件源有效</li>
+<li>Body-编辑实体</li>
+<li>点击零件上的圆角特征面，可以编辑圆角面的外观</li>
+<li>最上方的零件属于装配体属性，只对所选零件个体有效</li>
+<li>外观编辑窗口还可以选择编辑面</li>
+<li>上方属性会覆盖下方属性</li>
+</ul>
+<h3 id="4-6-版本问题相关"><a href="#4-6-版本问题相关" class="headerlink" title="4.6 版本问题相关"></a>4.6 版本问题相关</h3><ul>
+<li>高版本保存的文件，低版本不能打开，解决方法，另存X_T，或step格式，低版本可打开但会缺失设计树步骤</li>
+<li>建议小版本使用SP5小版本</li>
+</ul>
+<h3 id="4-7-打包功能"><a href="#4-7-打包功能" class="headerlink" title="4.7 打包功能"></a>4.7 打包功能</h3><ul>
+<li>Pack and Go,即素材全打包，生成工程文件，包含装配体引用各零件的链接及零件的源文件</li>
+<li>也可用作存档打包材料</li>
+<li>建议添加后缀，附加说明，也避免重名文件</li>
+</ul>
 
                 
             </div>
@@ -620,7 +562,7 @@ File Access
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://YiiiAylmer.github.io/2023/07/02/matlab-tong-yong-ke/">https://YiiiAylmer.github.io/2023/07/02/matlab-tong-yong-ke/</a>
+                    <a href="https://YiiiAylmer.github.io/2023/08/13/2023.8before/solidworks-zhuang-pei-ti/">https://YiiiAylmer.github.io/2023/08/13/2023.8before/solidworks-zhuang-pei-ti/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -658,8 +600,8 @@ File Access
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/Matlab/">
-                                    <span class="chip bg-color">Matlab</span>
+                                <a href="/tags/SolidWorks/">
+                                    <span class="chip bg-color">SolidWorks</span>
                                 </a>
                             
                         </div>
@@ -709,13 +651,13 @@ File Access
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2023/07/05/matlab-jin-jie-hui-tu/">
+                <a href="/2023/08/24/comsol-ru-men/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="Matlab之进阶绘图">
+                        <img src="/medias/featureimages/2.jpg" class="responsive-img" alt="COMSOL入门">
                         
-                        <span class="card-title">Matlab之进阶绘图</span>
+                        <span class="card-title">COMSOL入门</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -726,14 +668,14 @@ File Access
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-07-05
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-08-24
                         </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/Matlab/" class="post-category">
-                                    Matlab
+                            <a href="/categories/COMSOL/" class="post-category">
+                                    COMSOL
                                 </a>
                             
                             
@@ -743,8 +685,8 @@ File Access
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/Matlab/">
-                        <span class="chip bg-color">Matlab</span>
+                    <a href="/tags/COMSOL/">
+                        <span class="chip bg-color">COMSOL</span>
                     </a>
                     
                 </div>
@@ -758,13 +700,13 @@ File Access
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2023/06/23/pr-diao-se/">
+                <a href="/2023/08/01/2023.8before/solidworks-te-zheng-ming-ling/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/10.jpg" class="responsive-img" alt="Pr调色曲线">
+                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="SolidWorks特征命令">
                         
-                        <span class="card-title">Pr调色曲线</span>
+                        <span class="card-title">SolidWorks特征命令</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -775,14 +717,14 @@ File Access
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-06-23
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-08-01
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/Pr/" class="post-category">
-                                    Pr
+                            <a href="/categories/SolidWorks/" class="post-category">
+                                    SolidWorks
                                 </a>
                             
                             
@@ -792,12 +734,8 @@ File Access
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/Pr/">
-                        <span class="chip bg-color">Pr</span>
-                    </a>
-                    
-                    <a href="/tags/%E8%B0%83%E8%89%B2/">
-                        <span class="chip bg-color">调色</span>
+                    <a href="/tags/SolidWorks/">
+                        <span class="chip bg-color">SolidWorks</span>
                     </a>
                     
                 </div>
@@ -995,7 +933,7 @@ File Access
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">11.4k</span>
+                        class="white-color">12.4k</span>
             
             
             

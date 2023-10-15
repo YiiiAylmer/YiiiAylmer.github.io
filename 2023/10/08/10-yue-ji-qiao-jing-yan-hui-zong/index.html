@@ -406,14 +406,14 @@ EndNote教程
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    653
+                    1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    2 分
+                    3 分
                 </div>
                 
 
@@ -521,6 +521,80 @@ EndNote教程
 </ul>
 <h4 id="1-4-3-引用网页文献"><a href="#1-4-3-引用网页文献" class="headerlink" title="1.4.3 引用网页文献"></a>1.4.3 引用网页文献</h4><ul>
 <li>手动编辑引用信息,用时再学</li>
+</ul>
+<h2 id="2-OpenCV安装与配置"><a href="#2-OpenCV安装与配置" class="headerlink" title="2 OpenCV安装与配置"></a>2 OpenCV安装与配置</h2><p>参考资料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://opencv.org/releases/">OpenCV官网</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1S541127kp/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109">配置指南</a></li>
+</ul>
+<h3 id="2-1-添加系统的环境变量"><a href="#2-1-添加系统的环境变量" class="headerlink" title="2.1 添加系统的环境变量"></a>2.1 添加系统的环境变量</h3><ul>
+<li>C:\opencv\build\x64\vc15\bin</li>
+</ul>
+<h3 id="2-2-配置VS属性表"><a href="#2-2-配置VS属性表" class="headerlink" title="2.2 配置VS属性表"></a>2.2 配置VS属性表</h3><ul>
+<li>设备管理器中选择Debug_x64,添加新表</li>
+<li>VC++包含目录，加入<ul>
+<li>C:\opencv\build\include</li>
+<li>C:\opencv\build\include\opencv2</li>
+</ul>
+</li>
+<li>库目录，加入<ul>
+<li>C:\opencv\build\x64\vc15\lib</li>
+</ul>
+</li>
+<li>链接器中输入附加依赖项<ul>
+<li>opencv_world342d.lib(库目录lib下的文件名)</li>
+</ul>
+</li>
+<li>Release_x64中与Debug基本相同，附加项文件名为opencv_world342.lib</li>
+</ul>
+<h3 id="2-3-VS不能正常运行"><a href="#2-3-VS不能正常运行" class="headerlink" title="2.3 VS不能正常运行"></a>2.3 VS不能正常运行</h3><ul>
+<li>需要把C:\opencv\build\x64\vc15\bin下的dll复制到C:\Windows\System32下</li>
+<li>此后，任意新项目，只需要添加已制作好的属性表即可使用opencv</li>
+</ul>
+<h2 id="3-MV-Discussion"><a href="#3-MV-Discussion" class="headerlink" title="3 MV Discussion"></a>3 MV Discussion</h2><ul>
+<li><p>智能化汽车是发展风口，是未来趋势</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/360370537">智能汽车</a></li>
+</ul>
+</li>
+<li><p>疲劳检测系统机制</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Lee_01/article/details/89151044">人脸眨眼张口检测代码</a></li>
+<li>图像采集</li>
+<li>A柱子，方向盘，后视镜处会有摄像头传感器，采集图像</li>
+<li>特征提取<ul>
+<li>提取人犯困的特征，以面部为主，眼皮变沉，打哈欠检测</li>
+<li>检测到人脸，再集中到人脸范围</li>
+<li>算法<ul>
+<li>定位眼部坐标，P1,2,3,4,5,6</li>
+<li>计算特征EAR，根据EAR变化曲线，判断疲劳状态</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>驾驶规范检测机制</p>
+<ul>
+<li>抽烟检测</li>
+<li>打电话检测</li>
+</ul>
+</li>
+<li><p>车辆行驶状况检测</p>
+<ul>
+<li>检测方向盘和车道偏离情况</li>
+</ul>
+</li>
+<li><p>疲劳程度等级分类</p>
+</li>
+<li><p>缺陷</p>
+<ul>
+<li>正常开车看方向时被误判</li>
+<li>眼睛太小被误判</li>
+</ul>
+</li>
+<li><p>更快的算法，更好的疲劳衡量标准，更丰富的预警功能</p>
+</li>
 </ul>
 <!-- ## 2 文献查阅与下载
 
@@ -671,18 +745,17 @@ EndNote教程
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2023/10/08/10-yue-ji-qiao-jing-yan-hui-zong/">
+                <a href="/2023/10/11/qt-ru-men-dao-ru-tu/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/23.jpg" class="responsive-img" alt="10月技巧经验汇总">
+                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="Qt入门到入土">
                         
-                        <span class="card-title">10月技巧经验汇总</span>
+                        <span class="card-title">Qt入门到入土</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -692,27 +765,30 @@ EndNote教程
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-10-08
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-10-11
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E6%9C%88%E6%B1%87%E6%80%BB/" class="post-category">
-                                    月汇总
+                            <a href="/categories/Qt/" class="post-category">
+                                    Qt
                                 </a>
                             
                             
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E6%9C%88%E6%B1%87%E6%80%BB/">
-                        <span class="chip bg-color">月汇总</span>
+                    <a href="/tags/Qt/">
+                        <span class="chip bg-color">Qt</span>
+                    </a>
+                    
+                    <a href="/tags/GUI/">
+                        <span class="chip bg-color">GUI</span>
                     </a>
                     
                 </div>
@@ -959,7 +1035,7 @@ EndNote教程
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">11.4k</span>
+                        class="white-color">12.4k</span>
             
             
             
