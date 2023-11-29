@@ -410,7 +410,7 @@ QT+OpenCV环境搭建
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    778
+                    899
                 </div>
                 
 
@@ -549,7 +549,20 @@ LIBS +&#x3D; C:\QtCvInstall\opencv\opencv\opencv_build\lib\libopencv_*.a<span ar
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_37906001/article/details/76672634">QT中打开本地文件不能识别中文路径</a></li>
 <li><pre><code>QTextCodec *code = QTextCodec::codecForName(&quot;GB2312&quot;);//解决中文路径问题
 std::string name = code-&gt;fromUnicode(fileName).data();
+<pre class="line-numbers language-none"><code class="language-none">### 3.3 QT获取Label中的图片内容并保存图片
+- 参考
+  - [qt5获取label标签内的图片内容](https:&#x2F;&#x2F;wenku.csdn.net&#x2F;answer&#x2F;90dc1d80134211eea6c2fa163eeb3507#)
+  - [QImage保存图像到本地](https:&#x2F;&#x2F;blog.csdn.net&#x2F;hml111666&#x2F;article&#x2F;details&#x2F;122500834?)
+- &#96;&#96;&#96;
+  QImage image&#x3D;ui-&gt;lab_show2-&gt;pixmap()-&gt;toImage(); &#x2F;&#x2F;获取label的pixmap转为QImage
+  image.save(QString(&quot;.&#x2F;img_out&#x2F;save_img%1.png&quot;).arg(saveimg_index),&quot;PNG&quot;,100); &#x2F;&#x2F;保存图片<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 </code></pre>
+</li>
+</ul>
+<h3 id="3-4-串口通信相关"><a href="#3-4-串口通信相关" class="headerlink" title="3.4 串口通信相关"></a>3.4 串口通信相关</h3><ul>
+<li>参考<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42837024/article/details/81669540">Qt 串口通信(QSerialPort)</a></li>
+</ul>
 </li>
 </ul>
 
@@ -957,7 +970,7 @@ std::string name = code-&gt;fromUnicode(fileName).data();
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">14.6k</span>
+                        class="white-color">15.1k</span>
             
             
             
