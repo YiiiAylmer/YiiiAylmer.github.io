@@ -367,12 +367,12 @@ Qt 调用MATLAB引擎混合编程
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/Qt/">
-                                <span class="chip bg-color">Qt</span>
-                            </a>
-                        
                             <a href="/tags/Matlab/">
                                 <span class="chip bg-color">Matlab</span>
+                            </a>
+                        
+                            <a href="/tags/Qt/">
+                                <span class="chip bg-color">Qt</span>
                             </a>
                         
                     </div>
@@ -405,7 +405,7 @@ Qt 调用MATLAB引擎混合编程
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    346
+                    351
                 </div>
                 
 
@@ -441,39 +441,36 @@ Qt 调用MATLAB引擎混合编程
 <li>直接调用MATLAB计算引擎，相当于进程调用，后台开一个MATLAB应用，通过C API传参和接收MATLAB的返回结果</li>
 </ul>
 <h2 id="2-操作"><a href="#2-操作" class="headerlink" title="2 操作"></a>2 操作</h2><h3 id="2-1-MATLAB配置C编译器"><a href="#2-1-MATLAB配置C编译器" class="headerlink" title="2.1 MATLAB配置C编译器"></a>2.1 MATLAB配置C编译器</h3><ul>
-<li>配置MATLAB的C编译器与Qt的C编译器为同一个MinGW<ul>
-<li><pre><code>setenv(&#39;MW_MINGW64_LOC&#39;,&#39;C:\Qt\Qt5.14.2\Tools\mingw730_64&#39;)
+<li><p>配置MATLAB的C编译器与Qt的C编译器为同一个MinGW</p>
+<pre class="line-numbers language-none"><code class="language-none">setenv(&#39;MW_MINGW64_LOC&#39;,&#39;C:\Qt\Qt5.14.2\Tools\mingw730_64&#39;)
 该方法是临时设置MinGW环境变量
 也可以在系统环境变量中设置好，一劳永逸
-<pre class="line-numbers language-none"><code class="language-none">  - Matlab中选择MinGW64 C++
-    - mex -setup
+Matlab中选择MinGW64 C++
+mex -setup<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-- Qt配置Matlab Engine环境
-  - Qt.Pro中添加Engine依赖项
-    - 注意当MATLAB安装目录有空格时
-    - &#96;&#96;&#96;
-      INCLUDEPATH +&#x3D; $$quote(C:\Program Files\MATLAB\R2018b\extern\include)
-      LIBS +&#x3D; $$quote(C:\Program Files\MATLAB\R2018b\extern\lib\win64\mingw64\lib*.lib)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-</code></pre>
 </li>
-<li>测试代码<ul>
-<li><pre><code>#include&lt;engine.h&gt;
+<li><p>Qt配置Matlab Engine环境</p>
+<ul>
+<li>Qt.Pro中添加Engine依赖项<ul>
+<li>注意当MATLAB安装目录有空格时</li>
+<li>去空格<pre class="line-numbers language-none"><code class="language-none">INCLUDEPATH +&#x3D; $$quote(C:\Program Files\MATLAB\R2018b\extern\include)
+LIBS +&#x3D; $$quote(C:\Program Files\MATLAB\R2018b\extern\lib\win64\mingw64\lib*.lib)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+</ul>
+</li>
+<li>测试代码<pre class="line-numbers language-none"><code class="language-none">#include&lt;engine.h&gt;
 #include&lt;QDebug&gt;
 
 Engine* mat;
 const char* commandchar;
-if(!(mat=engOpen(NULL)))&#123;
+if(!(mat&#x3D;engOpen(NULL)))&#123;
   qDebug()&lt;&lt;&quot;Cannot start MATLAB engine!&quot;;
 &#125;
-commandchar=&quot;t=0:0.01:4*pi;y=sin(t);h=plot(t,y)&quot;;
-engEvalString(mat,commandchar);
-</code></pre>
-</li>
+commandchar&#x3D;&quot;t&#x3D;0:0.01:4*pi;y&#x3D;sin(t);h&#x3D;plot(t,y)&quot;;
+engEvalString(mat,commandchar);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 </ul>
 </li>
-</ul>
-</li>
-<li>若有其他问题，看下面帖<ul>
+<li><p>若有其他问题，看下面帖</p>
+<ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u010058695/article/details/121682716">Qt 调用MATLAB引擎混合编程</a></li>
 <li><a target="_blank" rel="noopener" href="https://ww2.mathworks.cn/help/matlab/calling-matlab-engine-from-c-programs-1.html">C调用MATLAB官方</a></li>
 </ul>
@@ -543,12 +540,12 @@ engEvalString(mat,commandchar);
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/Qt/">
-                                    <span class="chip bg-color">Qt</span>
-                                </a>
-                            
                                 <a href="/tags/Matlab/">
                                     <span class="chip bg-color">Matlab</span>
+                                </a>
+                            
+                                <a href="/tags/Qt/">
+                                    <span class="chip bg-color">Qt</span>
                                 </a>
                             
                         </div>
