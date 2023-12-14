@@ -405,14 +405,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.7k
+                    1.9k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    7 分
+                    8 分
                 </div>
                 
 
@@ -810,6 +810,40 @@ qDebug()&lt;&lt;&quot;a:&quot;&lt;&lt;a&lt;&lt;&quot;b+c: &quot;&lt;&lt;b+c;<spa
 <li>exception-异常抛出处理throw</li>
 </ul>
 </li>
+</ul>
+<h3 id="1-4-QTimer类应用"><a href="#1-4-QTimer类应用" class="headerlink" title="1.4 QTimer类应用"></a>1.4 QTimer类应用</h3><ul>
+<li>构造<ul>
+<li>start(),需要手动设置时间间隔,setInterval</li>
+<li>start(int msec) 设置时间间隔</li>
+</ul>
+</li>
+<li>设置定时器精度<ul>
+<li>setTimerType</li>
+<li>参数类型_PreciseTimer&#x2F;CoarseTimer&#x2F;VeryCoarseTimer</li>
+</ul>
+</li>
+<li>触发判断<ul>
+<li>isActive</li>
+<li>默认周期性触发，设置只触发一次_<strong>setSingleShot</strong>与isSingleShot</li>
+</ul>
+</li>
+<li><strong>QTimer的静态方法很方便</strong><ul>
+<li>QTimer::singleShot()</li>
+</ul>
+</li>
+<li>示例代码<pre class="line-numbers language-none"><code class="language-none">QTimer* timer&#x3D;new QTimer(this);
+timer-&gt;setTimerType(Qt::VeryCoarseTimer);
+connect(timer,&amp;QTimer::timeout,this,[&#x3D;]()&#123;
+      QTime tm&#x3D;QTime::currentTime();
+      ui-&gt;cur_time-&gt;setText(tm.toString(&quot;hh:mm:ss.zzz&quot;));
+  &#125;);
+connect(ui-&gt;once_btn,&amp;QPushButton::clicked,this,[&#x3D;]()&#123;
+      &#x2F;&#x2F;获取两秒之后的系统时间
+      QTimer::singleShot(2000,this,[&#x3D;]()&#123;
+          QTime tm&#x3D;QTime::currentTime();
+          ui-&gt;once_time-&gt;setText(tm.toString(&quot;hh:mm:ss.zzz&quot;));
+      &#125;);
+  &#125;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 </ul>
 
                 
@@ -1216,7 +1250,7 @@ qDebug()&lt;&lt;&quot;a:&quot;&lt;&lt;a&lt;&lt;&quot;b+c: &quot;&lt;&lt;b+c;<spa
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">16.5k</span>
+                        class="white-color">16.7k</span>
             
             
             
