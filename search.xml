@@ -4,6 +4,58 @@
   
     
     <entry>
+      <title>Qt获取Matlab窗口</title>
+      <link href="/2024/01/05/qt/qt-huo-qu-matlabfig-chuang-kou/"/>
+      <url>/2024/01/05/qt/qt-huo-qu-matlabfig-chuang-kou/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Qt获取Matlab窗口学习记录"><a href="#Qt获取Matlab窗口学习记录" class="headerlink" title="Qt获取Matlab窗口学习记录"></a>Qt获取Matlab窗口学习记录</h1><h2 id="1-句柄方案"><a href="#1-句柄方案" class="headerlink" title="1 句柄方案"></a>1 句柄方案</h2><h3 id="1-1-句柄的学习"><a href="#1-1-句柄的学习" class="headerlink" title="1.1 句柄的学习"></a>1.1 句柄的学习</h3><ul><li>参考资料:<ul><li><a href="https://www.bilibili.com/video/BV1Vb4y1d7rp/">句柄与指针，傻傻分不清</a></li><li><a href="https://www.bilibili.com/video/BV1rK4y147Lb/">QT获取其他窗口句柄</a></li></ul></li></ul><h4 id="1-1-1-句柄与指针"><a href="#1-1-1-句柄与指针" class="headerlink" title="1.1.1 句柄与指针"></a>1.1.1 句柄与指针</h4><ul><li>Windows中分用户层和内核层以及硬件抽象层<ul><li>用户层中有多个应用进程</li><li>内核层仅一个进程</li><li>HAL中包含(声卡、显卡、硬盘、网卡等)</li></ul></li><li>指针是什么？<ul><li>C<ul><li>int* pAge&#x3D;malloc(sizeof(int));</li></ul></li><li>C++<ul><li>int* pAgeCPP &#x3D; new int;</li></ul></li><li>栈(指针)与堆(对象或数组)</li><li>三层中，内核层必定要处理硬件，此时用指针思路操作，内核层只会有唯一的一个声卡实例。用户层访问时，会用到同一个实例。一个声卡被多个进程同时播放音乐。</li></ul></li><li>句柄是什么？<ul><li>用户层中存在一个资源列表，其中的句柄列表会映射到内核层中的实例引用。</li><li><strong>句柄的本质是对底层硬件实例的指针的引用</strong>。</li><li>为什么要用句柄？<ul><li>节约资源，更高效实现资源管理</li></ul></li></ul></li></ul><h4 id="1-1-2-获取窗口句柄"><a href="#1-1-2-获取窗口句柄" class="headerlink" title="1.1.2 获取窗口句柄"></a>1.1.2 获取窗口句柄</h4>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>24.01文献阅读</title>
+      <link href="/2024/01/04/24-jan-reading/"/>
+      <url>/2024/01/04/24-jan-reading/</url>
+      
+        <content type="html"><![CDATA[<h1 id="24-1月文献阅读"><a href="#24-1月文献阅读" class="headerlink" title="24_1月文献阅读"></a>24_1月文献阅读</h1><p>引言：</p><ul><li>年终汇报的主题可能是MPC?</li></ul><p>参考资料：</p><ul><li><a href="https://space.bilibili.com/230105574">DR_CAN工程师主页</a></li><li><a href="https://www.bilibili.com/video/BV1cL411n7KV/">MPC模型预测控制器</a></li><li><a href="https://www.bilibili.com/video/BV1U54y1J7wh/">MPC公式到代码</a></li></ul><h2 id="1-Real-Time-Application-of-Robust-Offset-Free-MPC-in-Maglev-Planar-Machine-2023-TIE-Xu-F-Q"><a href="#1-Real-Time-Application-of-Robust-Offset-Free-MPC-in-Maglev-Planar-Machine-2023-TIE-Xu-F-Q" class="headerlink" title="1. Real-Time Application of Robust Offset-Free MPC in Maglev Planar Machine_2023_TIE_Xu, F. Q."></a>1. Real-Time Application of Robust Offset-Free MPC in Maglev Planar Machine_2023_TIE_Xu, F. Q.</h2><ul><li>题译MPC在磁浮平面电机的鲁棒无偏移实时应用</li><li>摘要<ul><li><blockquote><p>本文使用MPC改进了磁浮平面电机的瞬态响应</p></blockquote></li><li><blockquote><p>实验表明，所提控制器在轨迹跟踪方面优于抗倒转PID、开关线性二次调节器、baselineMPC、非线性MPC</p></blockquote></li></ul></li><li>Index Terms<ul><li>—Magnetically levitated (maglev) planar machine, </li><li>model predictive control (MPC), </li><li>transient response</li></ul></li></ul><h3 id="1-1-Introduction"><a href="#1-1-Introduction" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h3><ul><li>磁浮致动器在精密工业中很重要，有前景；很多人研究控制策略</li><li>但是！<strong>现有研究集中在抑制干扰和抑制不确定性上</strong>，以提高跟踪性能。对响应速度的关注较少。</li><li>然后将一些MPC理论特性的优点：模型、预测未来状态，求解最优化序列等。</li><li>要对多自由度的高精运动控制系统应用MPC，存在3点挑战<ul><li>要有更好的步进跟踪性能，预测区间需要足够长，增大了实时的优化求解难度</li><li>多自由度运动、加大了计算负担</li><li>由于磁浮平面电机的非线性、多轴耦合以及装配误差，需要用到实时鲁棒控制来保证闭环性能。<strong>鲁棒MPC需要增加额外的状态约束来处理不确定性</strong>，加大了计算复杂度。</li><li>总结一句话就是，多自由度系统、高性能，就很难算。</li></ul></li><li>本文主要贡献<ul><li>设计MPC，改善了在磁浮平面电机上的瞬态性能</li><li>磁浮系统的无偏性能评估</li><li>MPC鲁棒稳定性实现</li><li>实验结果是，MPC方法有更短的平稳时间、更快的响应速度、更小的跟踪误差</li></ul></li></ul><h3 id="1-2-系统动态模型"><a href="#1-2-系统动态模型" class="headerlink" title="1.2 系统动态模型"></a>1.2 系统动态模型</h3><ul><li>动力系统模型<ul><li>用P&#x3D;Vt+at^2&#x2F;2 和 V&#x3D;at</li><li>构建状态空间方程</li></ul></li><li>逆模方法<ul><li>推力实际上是电流</li><li>力和转矩如何通过电流计算</li></ul></li></ul><h3 id="1-3-控制策略"><a href="#1-3-控制策略" class="headerlink" title="1.3 控制策略"></a>1.3 控制策略</h3><ul><li><blockquote><p>使用MPC能有效提高瞬态特性，采用PID补偿器补偿外部扰动，以实现无偏移MPC。</p></blockquote></li><li><blockquote><p>摆出控制框图，系统的输入是力而非电流，逆模单元中的电流用虚线表示</p></blockquote></li><li>MPC平面跟踪</li></ul><h3 id="2-6-实验部分"><a href="#2-6-实验部分" class="headerlink" title="2.6 实验部分"></a>2.6 实验部分</h3><ul><li>利用优化后参数制造了致动器原型，并在精度位移平台搭建系统，测量气隙处沿 z 轴和 x 轴方向的磁通密度</li><li>结果比较<ul><li>测量结果与有限元模拟结果和分析结果进行了比较</li><li>X 轴方向的平均磁通密度为 0.85T，磁通密度波动为 4%</li><li>X 轴方向的平均磁通密度为 0.86T，磁通密度波动为 3.8%。</li></ul></li></ul><h3 id="2-7-结论"><a href="#2-7-结论" class="headerlink" title="2.7 结论"></a>2.7 结论</h3><ul><li><blockquote><p>利用等效磁荷法和场叠加原理，<strong>建立了非等尺寸Hal阵列的磁场分析模型</strong>。</p></blockquote></li><li><blockquote><p>用Maxwell模拟结果比较，<strong>验证模型的准确性</strong>。</p></blockquote></li><li><blockquote><p>研究尺寸参数对气隙磁通密度的影响。并用<strong>遗传算法完成多目标优化设计</strong>，获得最佳磁力热参数。</p></blockquote></li><li><blockquote><p>制作原型器件，搭建实验，完成<strong>实验验证</strong>，说明说提模型准确</p></blockquote></li><li>下一步，用本篇模型用到磁浮隔振系统的精密动态模型中。</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Read </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Read </tag>
+            
+            <tag> Magnetics </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>23.12文献阅读</title>
       <link href="/2023/12/15/23-dec-reading/"/>
       <url>/2023/12/15/23-dec-reading/</url>
@@ -35,7 +87,7 @@
       <link href="/2023/11/29/11-yue-ji-qiao-jing-yan-hui-zong/"/>
       <url>/2023/11/29/11-yue-ji-qiao-jing-yan-hui-zong/</url>
       
-        <content type="html"><![CDATA[<h1 id="11月技巧经验汇总"><a href="#11月技巧经验汇总" class="headerlink" title="11月技巧经验汇总"></a>11月技巧经验汇总</h1><ul><li>工具推荐</li></ul><h2 id="1-三个白嫖工具推荐"><a href="#1-三个白嫖工具推荐" class="headerlink" title="1 三个白嫖工具推荐"></a>1 三个白嫖工具推荐</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV11y4y1w7pL/?vd_source=3b79726d0bfe11498e42e05d1b77f109">😨资本家最讨厌的白嫖怪长什么样</a></li></ul><h3 id="1-1-aconvert在线万能格式转换工具"><a href="#1-1-aconvert在线万能格式转换工具" class="headerlink" title="1.1 aconvert在线万能格式转换工具"></a>1.1 aconvert在线万能格式转换工具</h3><ul><li><a href="https://www.aconvert.com/pdf/">aconvert</a></li></ul><h3 id="1-2-Chrome浏览器超级复制插件"><a href="#1-2-Chrome浏览器超级复制插件" class="headerlink" title="1.2 Chrome浏览器超级复制插件"></a>1.2 Chrome浏览器超级复制插件</h3><ul><li>SuperCopy超级复制，能强制复制任何网页的文档内容</li><li>不需要截图</li></ul><h3 id="1-3-！！！图表可视化制作工具！！！"><a href="#1-3-！！！图表可视化制作工具！！！" class="headerlink" title="1.3 ！！！图表可视化制作工具！！！"></a>1.3 ！！！图表可视化制作工具！！！</h3><ul><li><p><a href="https://github.com/apache/echarts">Github下载图表工具</a></p></li><li><p>其他资料</p><ul><li><a href="https://echarts.apache.org/zh/index.html">Echarts官网</a></li><li>需要一点点JS基础</li></ul></li></ul>]]></content>
+        <content type="html"><![CDATA[<h1 id="11月技巧经验汇总"><a href="#11月技巧经验汇总" class="headerlink" title="11月技巧经验汇总"></a>11月技巧经验汇总</h1><ul><li>工具推荐</li></ul><h2 id="1-三个白嫖工具推荐"><a href="#1-三个白嫖工具推荐" class="headerlink" title="1 三个白嫖工具推荐"></a>1 三个白嫖工具推荐</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV11y4y1w7pL/?vd_source=3b79726d0bfe11498e42e05d1b77f109">😨资本家最讨厌的白嫖怪长什么样</a></li></ul><h3 id="1-1-aconvert在线万能格式转换工具"><a href="#1-1-aconvert在线万能格式转换工具" class="headerlink" title="1.1 aconvert在线万能格式转换工具"></a>1.1 aconvert在线万能格式转换工具</h3><ul><li><a href="https://www.aconvert.com/pdf/">aconvert</a></li></ul><h3 id="1-2-Chrome浏览器超级复制插件"><a href="#1-2-Chrome浏览器超级复制插件" class="headerlink" title="1.2 Chrome浏览器超级复制插件"></a>1.2 Chrome浏览器超级复制插件</h3><ul><li>SuperCopy超级复制，能强制复制任何网页的文档内容</li><li>不需要截图</li></ul><h3 id="1-3-！！！图表可视化制作工具！！！"><a href="#1-3-！！！图表可视化制作工具！！！" class="headerlink" title="1.3 ！！！图表可视化制作工具！！！"></a>1.3 ！！！图表可视化制作工具！！！</h3><ul><li><p><a href="https://github.com/apache/echarts">Github下载图表工具</a></p></li><li><p>其他资料</p><ul><li><a href="https://echarts.apache.org/zh/index.html">Echarts官网</a></li><li>需要一点点JS基础</li></ul></li></ul><h2 id="2-12个破除限制网站，99-的人根本不懂！！！-某科君"><a href="#2-12个破除限制网站，99-的人根本不懂！！！-某科君" class="headerlink" title="2 12个破除限制网站，99%的人根本不懂！！！_某科君"></a>2 12个破除限制网站，99%的人根本不懂！！！_某科君</h2><ol><li>Zlibrary：<a href="https://zh.z-library.se/?ts=0403">https://zh.z-library.se/?ts=0403</a> </li><li>奇妙搜索：<a href="https://www.magicalsearch.cc/main">https://www.magicalsearch.cc/main</a> </li><li>Mvcat：<a href="https://www.mvcat.com/">https://www.mvcat.com/</a> </li><li>Clipdrop：<a href="https://clipdrop.co/uncrop">https://clipdrop.co/uncrop</a> </li><li>Runwayml：<a href="https://app.runwayml.com/video-tools/teams/moukejun/dashboard">https://app.runwayml.com/video-tools/teams/moukejun/dashboard</a> </li><li>Spaces：<a href="https://huggingface.co/spaces/zcxu-eric/magicanimate">https://huggingface.co/spaces/zcxu-eric/magicanimate</a> </li><li>AI乌托邦：<a href="https://www.ai-topia.com/#/home">https://www.ai-topia.com/#/home</a> </li><li>免费 ChatGPT: <a href="https://github.com/LiLittleCat/awesome-free-chatgpt">https://github.com/LiLittleCat/awesome-free-chatgpt</a></li><li>轻壁纸：<a href="https://qingbizhi.com/">https://qingbizhi.com/</a>  </li><li>分离音频网站： <a href="https://www.lalal.ai/zh-hans/">https://www.lalal.ai/zh-hans/</a> </li><li>漫画网站：<a href="https://mox.moe/">https://mox.moe/</a> </li><li>论文神器：<a href="https://panda321.com/">https://panda321.com/</a>  </li><li>学习网站：<a href="https://www.xue8nav.com/">https://www.xue8nav.com/</a> </li><li>虫部落：<a href="https://search.chongbuluo.com/">https://search.chongbuluo.com/</a></li></ol>]]></content>
       
       
       <categories>
@@ -151,9 +203,9 @@
       
         <tags>
             
-            <tag> Matlab </tag>
-            
             <tag> Qt </tag>
+            
+            <tag> Matlab </tag>
             
         </tags>
       
@@ -307,9 +359,9 @@
       
         <tags>
             
-            <tag> MATLAB </tag>
-            
             <tag> Mathematica </tag>
+            
+            <tag> MATLAB </tag>
             
         </tags>
       
