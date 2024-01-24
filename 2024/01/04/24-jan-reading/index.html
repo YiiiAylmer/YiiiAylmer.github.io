@@ -409,14 +409,14 @@ MPC公式到代码
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    865
+                    1.3k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    3 分
+                    4 分
                 </div>
                 
 
@@ -458,7 +458,7 @@ MPC公式到代码
 </ul>
 </li>
 <li>Index Terms<ul>
-<li>—Magnetically levitated (maglev) planar machine, </li>
+<li>Magnetically levitated (maglev) planar machine, </li>
 <li>model predictive control (MPC), </li>
 <li>transient response</li>
 </ul>
@@ -501,38 +501,117 @@ MPC公式到代码
 </blockquote>
 </li>
 <li><blockquote>
-<p>摆出控制框图，系统的输入是力而非电流，逆模单元中的电流用虚线表示</p>
+<p>摆出控制框图，系统的输入是力而非电流，故逆模单元中的电流用虚线表示</p>
 </blockquote>
 </li>
-<li>MPC平面跟踪</li>
-</ul>
-<h3 id="2-6-实验部分"><a href="#2-6-实验部分" class="headerlink" title="2.6 实验部分"></a>2.6 实验部分</h3><ul>
-<li>利用优化后参数制造了致动器原型，并在精度位移平台搭建系统，测量气隙处沿 z 轴和 x 轴方向的磁通密度</li>
-<li>结果比较<ul>
-<li>测量结果与有限元模拟结果和分析结果进行了比较</li>
-<li>X 轴方向的平均磁通密度为 0.85T，磁通密度波动为 4%</li>
-<li>X 轴方向的平均磁通密度为 0.86T，磁通密度波动为 3.8%。</li>
+<li>MPC平面跟踪<ul>
+<li>理论推导，将状态空间方程转化为二次规划形式</li>
+<li>以预测输入矩阵最优化Cost_Function</li>
 </ul>
 </li>
+<li>输入约束<ul>
+<li>考虑电流约束，，，力约束?</li>
 </ul>
-<h3 id="2-7-结论"><a href="#2-7-结论" class="headerlink" title="2.7 结论"></a>2.7 结论</h3><ul>
+</li>
+</ul>
+<h3 id="1-4-无偏MPC及鲁棒稳定性"><a href="#1-4-无偏MPC及鲁棒稳定性" class="headerlink" title="1.4 无偏MPC及鲁棒稳定性"></a>1.4 无偏MPC及鲁棒稳定性</h3><blockquote>
+<p>因为要消除运动控制系统的稳态误差，同时还讨论其鲁棒稳定性</p>
+</blockquote>
+<ul>
+<li><p>无偏MPC</p>
+<ul>
+<li>磁浮系统是稳态无偏的，要求<ul>
+<li>满足输入约束</li>
+<li>系统是稳定的</li>
+</ul>
+</li>
+<li>因满足输入约束<ul>
+<li>MPC优化等同于无约束优化</li>
+</ul>
+</li>
+<li>看Remark1<ul>
+<li>MPC控制中，输入约束之所以不生效，是由于?</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>预测区间长度保证了鲁棒稳定性</p>
+<ul>
+<li>一大段不是很懂</li>
+<li>给出一个算法_用来计算预测区间长度N</li>
+<li>一段证明，磁浮平面电机是鲁棒稳定的，只要证明了<strong>未来肯定会更好</strong></li>
+<li>Ru 越大，Rε、Rω 越小，则N 越小</li>
+<li>预测区间长度，若太小，运动性能不一定好；</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-5-实验验证"><a href="#1-5-实验验证" class="headerlink" title="1.5 实验验证"></a>1.5 实验验证</h3><ul>
+<li>系统集成，配置声明<ul>
+<li>用了哪些传感器，在LabVIEW RealTime弄</li>
+</ul>
+</li>
+<li>本方法与其他方法<ul>
+<li>C0-所提MPC</li>
+<li>C1-积分抗饱和PID</li>
+<li>C2-开关LQR</li>
+<li>C3-基线MPC</li>
+<li>C4-非线性MPC</li>
+</ul>
+</li>
+<li>对比实验<ul>
+<li>阶跃响应<ul>
+<li>到达稳定的时间，C0最短</li>
+<li>3种MPC中，线性MPC比非线性的处理时间短，计算少</li>
+<li>静态误差小</li>
+</ul>
+</li>
+<li>轨迹跟踪<ul>
+<li>跟踪误差反应瞬态性能</li>
+<li>两个指标，均方根误差Erms和最大绝对误差Emax</li>
+<li>C0相比C3经过了干扰修正</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>所提方法很好<ul>
+<li>MPC能有效处理 输入约束</li>
+<li>借助扰动观测器，实现了无偏定位</li>
+<li>线性MPC比非线性MPC运动性能更好</li>
+<li>本研究只重点考虑了输入约束，那状态约束?</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-Error-Bounded-Tracking-of-Maglev-Planar-Motor-Based-on-Robust-Model-Predictive-Control-2023-TIE-Kaiyang-Zhang"><a href="#2-Error-Bounded-Tracking-of-Maglev-Planar-Motor-Based-on-Robust-Model-Predictive-Control-2023-TIE-Kaiyang-Zhang" class="headerlink" title="2. Error-Bounded Tracking of Maglev Planar Motor Based on Robust Model Predictive Control_2023_TIE_Kaiyang Zhang"></a>2. Error-Bounded Tracking of Maglev Planar Motor Based on Robust Model Predictive Control_2023_TIE_Kaiyang Zhang</h2><ul>
+<li><p>基于鲁棒MPC的磁浮平面电机，有界误差跟踪</p>
+</li>
+<li><p>摘要</p>
+<ul>
 <li><blockquote>
-<p>利用等效磁荷法和场叠加原理，<strong>建立了非等尺寸Hal阵列的磁场分析模型</strong>。</p>
+<p>本文提出一种鲁棒MPC方案，用于实现磁浮平面电机的有界误差跟踪任务，动机在于将加工误差控制到所需的公差范围内</p>
 </blockquote>
 </li>
 <li><blockquote>
-<p>用Maxwell模拟结果比较，<strong>验证模型的准确性</strong>。</p>
+<p>本系统包含测量位置、状态估计、干扰估计的MPC预测模型，好的控制信号，可消除干扰造成的稳态误差。</p>
 </blockquote>
 </li>
 <li><blockquote>
-<p>研究尺寸参数对气隙磁通密度的影响。并用<strong>遗传算法完成多目标优化设计</strong>，获得最佳磁力热参数。</p>
+<p>基于系统、动力学、约束条件，用迭代法得到_鲁棒控制不变式集Robust Control Invariant set，放到MPC中，以实现有界误差跟踪。完成实验后，发现所提方法能完成有界误差的跟踪任务。</p>
 </blockquote>
 </li>
-<li><blockquote>
-<p>制作原型器件，搭建实验，完成<strong>实验验证</strong>，说明说提模型准确</p>
-</blockquote>
+</ul>
 </li>
-<li>下一步，用本篇模型用到磁浮隔振系统的精密动态模型中。</li>
+<li><p>Index Terms</p>
+<ul>
+<li>Error-bounded tracking, </li>
+<li>maglev planar motor, </li>
+<li>model predictive control (MPC), </li>
+<li>robust control invariant (RCI)</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-1-Introduction-1"><a href="#1-1-Introduction-1" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h3><ul>
+<li>磁浮致动器在精密工业中很重要，有前景；很多人研究控制策略</li>
+<li>但是！<strong>现有研究集中在抑制干扰和抑制不确定性上</strong>，以提高跟踪性能。对响应速度的关注较少。</li>
 </ul>
 
                 
@@ -939,7 +1018,7 @@ MPC公式到代码
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">21.4k</span>
+                        class="white-color">22.4k</span>
             
             
             
