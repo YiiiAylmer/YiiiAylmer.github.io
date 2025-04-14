@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>C++智能指针</title>
+      <link href="/2025/04/09/c/c-zhi-neng-zhi-zhen/"/>
+      <url>/2025/04/09/c/c-zhi-neng-zhi-zhen/</url>
+      
+        <content type="html"><![CDATA[<h1 id="C-智能指针"><a href="#C-智能指针" class="headerlink" title="C++智能指针"></a>C++智能指针</h1><p>参考资料:</p><ul><li><a href="https://www.bilibili.com/video/BV1se4y1s7Pz">30分钟讲明白现代C++最重要的特性之一：智能指针</a></li></ul><h2 id="1-裸指针与内存泄露"><a href="#1-裸指针与内存泄露" class="headerlink" title="1 裸指针与内存泄露"></a>1 裸指针与内存泄露</h2><ul><li>动态分配内存：new请求的内存必须用delete手动删除<pre class="line-numbers language-none"><code class="language-none">int *p &#x3D; new int[100];delete[] p; &#x2F;&#x2F;手动删除了new出来的数组,p仍然存在<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li><li>栈内存：当你调用一个函数，局部变量就分配在栈内存，函数调用结束局部变量就自动释放，这个过程由编译器自动控制</li><li>堆内存：用于动态分配内存，需要程序员手动请求这块内存，使用完需要程序员手动释放，不然这块内存就会一直存在<pre class="line-numbers language-none"><code class="language-none">int foo(int x)&#123;    int y&#x3D;x*2;    int *p&#x3D;new int[5];    p[0]&#x3D;y;    &#x2F;&#x2F; delete[] p;  &#x2F;&#x2F;若无delete，那么就会出现内存泄漏    &#x2F;&#x2F;结束后，x,y,p内存释放，但是new出来的int[5]内存不会释放&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>nullptr比NULL更安全：因为NULL本质上是0，编译器可理解为int导致混乱</li></ul><h2 id="2-共享指针shared-ptr"><a href="#2-共享指针shared-ptr" class="headerlink" title="2 共享指针shared_ptr"></a>2 共享指针shared_ptr</h2><ul><li>共享指针指向同一个物体，会记录其数量，数量降为0时，程序将自动释放该物体</li><li>#inclde&lt;memory&gt;</li><li>初始化<pre class="line-numbers language-none"><code class="language-none">shared_ptr&lt;int&gt; p;p&#x3D;make_shared&lt;int&gt;(100);shared_ptr&lt;int&gt; p &#123;make_shared&lt;int&gt;(100)&#125;; &#x2F;&#x2F; 尽量使用make_sharedshared_ptr&lt;int&gt; p &#123;new int(100)&#125;;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>自动管理内存-引用计数：当前指针所指对象的共享指针数量<pre class="line-numbers language-none"><code class="language-none">shared_ptr&lt;Ball&gt; p&#x3D;make_shared&lt;Ball&gt;();cout&lt;&lt;p.use_count()&lt;&lt;endl;shared_ptr&lt;Ball&gt; p2&#x3D;p;cout&lt;&lt;p.use_count()&lt;&lt;&quot; &quot;&lt;&lt;p2.use_count()&lt;&lt;endl;shared_ptr&lt;Ball&gt; p3&#x3D;p;cout&lt;&lt;p.use_count()&lt;&lt;&quot; &quot;&lt;&lt;p2.use_count()&lt;&lt;&quot; &quot;&lt;&lt;p3.use_count()&lt;&lt;endl;p.reset();p2.reset();p3.reset();<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>习惯：使用共享指针时避免裸指针</li><li>补充用法<ul><li><p>获取裸指针： Ball* rp&#x3D;p.get(); &#x2F;&#x2F;rp为裸指针，指向共享指针p所指对象</p></li><li><p>reset():带参数时，将修改shared_ptr已指向的对象改为参数所指对象</p></li><li><p>p.reset(new Ball);</p></li><li><p>自定义删除函数:shared_ptr&lt;FILE&gt; sfp {FILE* fp, editing_function}</p></li><li><p>别名</p><pre class="line-numbers language-none"><code class="language-none">struct Bar&#123;int i&#x3D;123;&#125;;struct Foo&#123;Bar bar;&#125;;int main()&#123;  shared_ptr&lt;Foo&gt; f&#x3D;make_shared&lt;Foo&gt;();  cout&lt;&lt;f.use_count()&lt;&lt;endl; &#x2F;&#x2F;1  shared_ptr&lt;Bar&gt; b(f,&amp;(f-&gt;bar)); &#x2F;&#x2F;b共享指针指向了 f指针所指对象实例的bar属性，那么此对象有两个共享指针计数、其中一个指向Bar类型的bar  cout&lt;&lt;f.use_count()&lt;&lt;endl; &#x2F;&#x2F;2  cout&lt;&lt;b-&gt;i&lt;&lt;endl;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><ul><li>危险行为及缺陷<ul><li>使用共享指针就，避免使用手动delete</li><li>由于存在引用计数，存在额外的内存、性能开销</li></ul></li></ul></li></ul></li></ul><h2 id="3-独享指针unique-ptr"><a href="#3-独享指针unique-ptr" class="headerlink" title="3 独享指针unique_ptr"></a>3 独享指针unique_ptr</h2><ul><li>共享指针相比于裸指针，性能下降</li><li>unique_ptr独享指针：一种零开销的智能指针，智能管理内存且无额外开销，推荐任何情况使用</li><li>初始化&#x2F;避免异常导致的内存泄漏<pre class="line-numbers language-none"><code class="language-none">unique_ptr&lt;int&gt; UP&#x3D;make_unique&lt;int&gt;(100);Object* p&#x3D;new Object;p-&gt;foo();delete p;&#x2F;&#x2F;若在第二行foo()函数出现异常终止，那么将没有执行delete，产生内存泄漏unique_ptr&lt;Object&gt; up &#123;make_unique&lt;Object&gt;()&#125;;up-&gt;foo();&#x2F;&#x2F;若抛出异常，也能正确释放内存<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>其他用法<ul><li>裸指针：Ball *p&#x3D;up-&gt;get();</li><li>释放&#x2F;重指向：up.reset() up指向nullptr &#x2F; up.reset(new Ball{});</li><li>指针解绑：release()，返回资源的裸指针</li></ul></li><li>由于unique_ptr独占一块内存的控制权，故不支持普通拷贝<pre class="line-numbers language-none"><code class="language-none">unique_ptr&lt;int&gt; up1&#x3D;make_unique&lt;int&gt;(100);unique_ptr&lt;int&gt; up2(up1); &#x2F;&#x2F;Errorup2&#x3D;up1; &#x2F;&#x2F;Errorunique_ptr&lt;int&gt; up2(up1.release()); &#x2F;&#x2F;up2获得了控制权，完成控制权的转移unique_ptr&lt;int&gt; up2&#x3D;move(up1); &#x2F;&#x2F;使用std::move 完成转移<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>自定义分配函数和释放函数<ul><li>默认使用new分配和delete释放</li><li>unique_ptr绑定释放函数在编译期，避免了运行时绑定的时间损耗。</li><li>shared_ptr自定义释放函数在运行时绑定</li></ul></li><li>unique_ptr函数传递时的注意事项<ul><li>由于不支持普通拷贝<pre class="line-numbers language-none"><code class="language-none">void main()&#123;  auto up&#x3D;make_unique&lt;int&gt;(123);  func(up);  &#x2F;&#x2F;不可拷贝，编译错误  定义 void func(unique_ptr&lt;int&gt; up)  func1(*up);  &#x2F;&#x2F;up指针指向的对象 定义 void func1(int&amp; value)  func2(up.get());  &#x2F;&#x2F;裸指针指向资源对象 定义 void func2(int* p)&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>上面代码不能改变unique_ptr本身:函数定义时使用独享函数引用<pre class="line-numbers language-none"><code class="language-none">void func3(unique_ptr&lt;int&gt;&amp; up)&#123;  cout&lt;&lt;*up&lt;&lt;endl;  up.reset();&#125;void main()&#123;  auto up&#x3D;make_unique&lt;int&gt;(123);  func3(up);  if(up&#x3D;&#x3D;nullptr) cout&lt;&lt;&quot;up is reset.&quot;;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>std::move用法<pre class="line-numbers language-none"><code class="language-none"> void func4(unique_ptr&lt;int&gt; up)&#123;  cout&lt;&lt;*up&lt;&lt;endl;&#125;void main()&#123;  auto up&#x3D;make_unique&lt;int&gt;(123);  func4(move(up));  if(up&#x3D;&#x3D;nullptr) cout&lt;&lt;&quot;up is reset.&quot;;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li>函数返回unique_ptr：需要理解函数返回细节</li></ul><h2 id="4-弱指针weak-ptr"><a href="#4-弱指针weak-ptr" class="headerlink" title="4 弱指针weak_ptr"></a>4 弱指针weak_ptr</h2><ul><li>weak_ptr是观察者，没有资源的管理权限；可以检查资源是否存在</li><li>适用于不需要控制资源但想检查资源是否存在</li><li>为什么使用弱指针<ul><li>shared_ptr环形依赖<pre class="line-numbers language-none"><code class="language-none">struct Teacher&#123;  string name;  shared_ptr&lt;School&gt; school;&#125;;struct School&#123;  string name;  shared_ptr&lt;Teacher&gt; principal;&#125;;int main()&#123;  auto princp&#x3D;make_shared&lt;Teacher&gt;();  auto university&#x3D;make_shared&lt;School&gt;();  princp-&gt;school&#x3D;university;  university-&gt;principal&#x3D;princp;  return 0;  &#x2F;&#x2F;程序结束之后，Teacher、School对象都没有被释放  &#x2F;&#x2F;因为Teacher对象结束生命周期时，发现存在university对象，不能执行析构&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li>weak_ptr用法<pre class="line-numbers language-none"><code class="language-none">weak_ptr&lt;int&gt; wp;shared_ptr&lt;int&gt; sp&#x3D;make_shared&lt;int&gt;(100);wp&#x3D;sp;  &#x2F;&#x2F;初始化一个弱指针 需要一个 shared_ptr 或 weak_ptr&#x2F;&#x2F;使用weak_ptr 访问资源时，需要临时转换成共享指针&#x2F;&#x2F;要访问对象，使用lock() 返回一个shared_ptr ,若指向的资源已释放，返回nullptrauto resource&#x3D;wp.lock();if(resource)&#123;  cout&lt;&lt;*resource&lt;&lt;endl;&#125;else&#123;  cout&lt;&lt;&quot;wp is expired&quot;;  &#x2F;&#x2F;wp已经过期了&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>如何解决环形依赖<pre class="line-numbers language-none"><code class="language-none">struct Teacher&#123;  string name;  &#x2F;&#x2F;shared_ptr&lt;School&gt; school;  weak_ptr&lt;School&gt; school;&#125;;struct School&#123;  string name;  shared_ptr&lt;Teacher&gt; principal;&#125;;int main()&#123;  auto princp&#x3D;make_shared&lt;Teacher&gt;();  auto university&#x3D;make_shared&lt;School&gt;();  princp-&gt;school&#x3D;university;  university-&gt;principal&#x3D;princp;  return 0;  &#x2F;&#x2F;程序结束之后，Teacher、School对象都没有被释放  &#x2F;&#x2F;因为Teacher对象结束生命周期时，发现存在university对象，不能执行析构&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> C++ </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> C++ </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Ubuntu基操</title>
+      <link href="/2025/03/31/linux-app-drive-development/ubuntu/"/>
+      <url>/2025/03/31/linux-app-drive-development/ubuntu/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Ubuntu基操"><a href="#Ubuntu基操" class="headerlink" title="Ubuntu基操"></a>Ubuntu基操</h1><p>参考资料:</p><ul><li><a href="https://www.bilibili.com/video/BV1w4411B7a4">嵌入式Linux快速入门到精通</a></li></ul><h2 id="1-安装VMware运行Ubuntu"><a href="#1-安装VMware运行Ubuntu" class="headerlink" title="1 安装VMware运行Ubuntu"></a>1 安装VMware运行Ubuntu</h2><h3 id="1-1-安装VMware"><a href="#1-1-安装VMware" class="headerlink" title="1.1 安装VMware"></a>1.1 安装VMware</h3><ul><li>Windows 下有很多虚拟机软件，目前市面上流行的有VMware和VirtualBox。使用VMware免费版<a href="https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion">Workstation Player</a></li></ul><h3 id="1-2-VMware打开Ubuntu"><a href="#1-2-VMware打开Ubuntu" class="headerlink" title="1.2 VMware打开Ubuntu"></a>1.2 VMware打开Ubuntu</h3><ul><li>VMware打开虚拟机，选择Ubuntu.vmx</li><li>默认密码:123456</li></ul><h2 id="2-Ubuntu基础操作"><a href="#2-Ubuntu基础操作" class="headerlink" title="2 Ubuntu基础操作"></a>2 Ubuntu基础操作</h2><h3 id="2-1-终端操作与PATH环境变量"><a href="#2-1-终端操作与PATH环境变量" class="headerlink" title="2.1 终端操作与PATH环境变量"></a>2.1 终端操作与PATH环境变量</h3><ul><li>终端操作<ul><li>搜索框输入terminal</li><li>右键选择 open terminal</li><li>快捷键：Ctrl+Alt+T</li></ul></li><li>设置PATH(以添加&#x2F;home&#x2F;book目录为例)<ul><li>临时设置：export PATH&#x3D;$PATH:&#x2F;home&#x2F;book</li><li>永久设置1当前用户：修改~&#x2F;.bashrc，在行尾添加或修改:<ul><li>gedit ~&#x2F;.bashrc</li><li>export PATH&#x3D;$PATH:&#x2F;home&#x2F;book</li></ul></li></ul></li></ul><h3 id="2-2-常用命令"><a href="#2-2-常用命令" class="headerlink" title="2.2 常用命令"></a>2.2 常用命令</h3><ul><li>目录：当前目录（pwd、.）、上级目录（..）、家目录（~）、上一个目录(-)</li><li>目录文件操作命令<ul><li>pwd: print working directory</li><li>cd: change directory</li><li>mkdir: make directory</li><li>rmdir: remove directory  | 删除目录 | rm -rf</li><li>ls: list</li><li>cp: copy</li><li>mv: move</li><li>rm: remove | 删除文件或文件夹 | -r 递归 -f 强制</li><li>cat | 串联文件内容并打印 | cat file1.txt file2.txt</li><li>touch | 修改文件的时间，若不存在会创建空文件</li></ul></li><li>修改文件权限和属性命令<ul><li>-|rwx|r-x|r-x 1 book(owner) book(group)</li><li>|拥有者可读写执行|同组其他用户可读执行不可写|其他用户可读执行不可写 该文件的拥有者是book，与book同组的其他用户，跟book无关系的用户</li><li>原权限755如要更改为675 chmod 675 hello</li><li>chgrp | 改变文件所属的用户组</li><li>chown | 改变文件所有者</li><li>chmod | 改变文件权限</li></ul></li><li>查找&#x2F;搜索命令<ul><li>find | find 目录名 选项 查找条件 | find &#x2F;home&#x2F;book&#x2F;dira&#x2F; -name “test1.txt” “*.txt”</li><li>grep | 查找文件中 符合条件的字符串 grep 选项 查找模式 文件名 | grep “WHU” *&#x2F;test1.txt -nwr</li></ul></li><li>压缩&#x2F;解压命令<ul><li>推荐使用tar 命令：能够压缩dir<ul><li>压缩tar czf(create z|j file) zipfile_name.tar.(gz|bz2)fileName</li><li>解压tar x(z|j)f zipfile_name.tar.(gz|bz2) [-C dir]</li></ul></li><li>gzip | 选项 -l(list) 列出压缩文件的内容 -k(keep) 压缩或解压时保留输入文件 -d(decompress) 将压缩文件进行解压缩 | gzip -l pwd.1.gz &#x2F; gzip -kd pwd.1.gz &#x2F; gzip -k mypwd.1</li><li>bzip2 | 压缩率更高</li></ul></li></ul><h3 id="2-3-vi编辑器"><a href="#2-3-vi编辑器" class="headerlink" title="2.3 vi编辑器"></a>2.3 vi编辑器</h3><ul><li>命令行编辑：gedit</li><li>三种模式：一般模式，编辑模式，命令行模式</li><li>新建、保存（:wq）、取消保存（:q!）</li><li>移动<ul><li>显示行号 :set number  隐藏行号 :set nonumber</li><li>翻页快捷键 Ctrl + F|B</li><li>跳转至某行 : row_number</li><li>跳至末尾行快捷 Shift + G</li></ul></li><li>编辑<ul><li>i-进入编辑模式</li><li>dw delete word删除单词</li><li>D 删除本行光标之后的所有内容</li><li>dd删除整行</li><li>ndd 删除以下n行</li><li>o 下方增加一行</li><li>u 撤销上次操作</li></ul></li><li>复制粘贴查找替换<ul><li>yy 复制当前行</li><li>nyy 复制下面n行</li><li>p 当前行下方粘贴</li><li>&#x2F;pattern 从光标处到文件尾搜索pattern n向下查找 N向上查找</li><li>:%s&#x2F;custom&#x2F;Custom&#x2F;g 将文件中的custom替换为Custom，且为global全局替换</li><li>:%s&#x2F;custom&#x2F;Custom&#x2F;gs 将文件中的custom全部替换为Custom，需要确认</li></ul></li></ul><h2 id="3-软件安装"><a href="#3-软件安装" class="headerlink" title="3 软件安装"></a>3 软件安装</h2><h3 id="3-1-Windows端"><a href="#3-1-Windows端" class="headerlink" title="3.1 Windows端"></a>3.1 Windows端</h3><ul><li>文件传输工具-Filezilla</li><li>串口工具、远程登陆工具-MobaXterm</li></ul><h3 id="3-2-远程登陆Ubuntu"><a href="#3-2-远程登陆Ubuntu" class="headerlink" title="3.2 远程登陆Ubuntu"></a>3.2 远程登陆Ubuntu</h3><ul><li>MobaXterm远程登陆<ul><li>Ubuntu终端中执行ifconfig，获取NAT网卡IP</li><li>MobaXterm中使用SSH配置<ul><li>Remote host：Ubuntu的IP</li><li>Specify username：输入用户名book</li><li>输入登陆密码</li></ul></li><li>MobaXterm可以SSH登陆也可以传输文件</li></ul></li><li>FileZilla传输文件<ul><li>主机：输入Ubuntu的IP</li><li>用户名：book</li><li>密码：登陆密码</li><li>端口：22</li></ul></li></ul><h2 id="4-Linux应用开发"><a href="#4-Linux应用开发" class="headerlink" title="4 Linux应用开发"></a>4 Linux应用开发</h2><h3 id="4-1-HelloWorld"><a href="#4-1-HelloWorld" class="headerlink" title="4.1 HelloWorld"></a>4.1 HelloWorld</h3><ul><li>int main(int argc, char **argv)</li><li>argument count | argument value</li></ul><h3 id="4-2-GCC编译器使用"><a href="#4-2-GCC编译器使用" class="headerlink" title="4.2 GCC编译器使用"></a>4.2 GCC编译器使用</h3><ul><li>main.c-预处理-main.i-编译-main.S-汇编-main.o-链接-led.elf</li><li>多文件编译<pre class="line-numbers language-none"><code class="language-none">一起编译、链接: gcc -o test main.c sub.c &#x2F;&#x2F;编译main.c、sub.c并链接得到test分开编译、然后链接: gcc -c -o main.o main.c &#x2F;&#x2F;编译.c得到.ogcc -c -o sub.o sub.c &#x2F;&#x2F;编译.c得到.ogcc -o test main.o sub.o指定头文件目录: gcc -c -o main.o main.c -v -I .&#x2F; &#x2F;&#x2F;将&quot;.&#x2F;&quot;当前目录指定为头文件目录 #include &lt;sub.h&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>静态库、动态库：解决路径问题-将文件放到系统路径中|将当前目录指定为库路径</li><li>有用的命令<pre class="line-numbers language-none"><code class="language-none">gcc -E main.c   &#x2F;&#x2F; 查看预处理结果，比如头文件是哪个 gcc -E -dM main.c  &gt; 1.txt  &#x2F;&#x2F; 把所有的宏展开，存在1.txt里 gcc -Wp,-MD,abc.dep -c -o main.o main.c  &#x2F;&#x2F; 生成依赖文件abc.dep，后面Makefile会用 echo &#39;main()&#123;&#125;&#39;| gcc -E -v -  &#x2F;&#x2F; 它会列出头文件目录、库目录(LIBRARY_PATH) <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li></ul><h3 id="4-3-Makefile使用"><a href="#4-3-Makefile使用" class="headerlink" title="4.3 Makefile使用"></a>4.3 Makefile使用</h3><ul><li>gcc -o test a.c b.c -v<ul><li>预处理-编译-汇编-链接</li><li>a.c-&gt;XXX.s-&gt;XXX.o</li><li>b.c-&gt;YYY.s-&gt;YYY.o</li><li>.o文件链接得到可执行程序test</li><li>缺点：若部分文件发生修改，重新执行该命令，所有子文件都会再重新处理一遍</li></ul></li><li>如何解决，仅对修改的文件进行编译，最后将所有.o文件进行链接<ul><li>参考4.2 GCC编译器使用中多文件编译段</li><li>gcc -c -o a.o a.c</li></ul></li><li>如何判断哪些文件被修改了？<ul><li>比较.o与.c文件的修改时间，若a.c时间晚于a.o，说明已经被修改</li></ul></li><li>Makefile规则<ul><li>目标文件：依赖文件</li><li>TAB 命令</li><li>当目标文件不存在或依赖文件比目标文件更新，执行命令</li><li>例：<ul><li>test:a.o b.o<ul><li>gcc -o test a.o b.o</li></ul></li><li>a.o:a.c<ul><li>gcc -c -o a.o a.c</li></ul></li><li>b.o:b.c<ul><li>gcc -c -o b.o b.c</li></ul></li><li>只需要执行make命令</li></ul></li></ul></li><li>Makefile语法<ul><li>通配符<ul><li>%.o %.c</li><li>$@ 目标文件</li><li>$&lt; 第一个依赖文件</li><li>$^ 所有的依赖文件</li></ul></li><li>假想目标<ul><li>clean:<ul><li>rm *.c test</li></ul></li><li>执行命令：make clean</li><li>若目录中存在名为clean的文件，那么符合规则，无依赖文件</li><li>使用假想目标定义 .PHONY clean</li></ul></li><li>变量<ul><li>即时变量(简单变量)<ul><li>A:&#x3D;XXX &#x2F;&#x2F;A的值在定义时即确定</li><li>B&#x3D;XXX &#x2F;&#x2F;B的值在使用时才确定</li><li>赋值方法 :&#x3D;即时变量 &#x3D; 延时变量 ?&#x3D;延时变量，如果是首次定义才生效，否则忽略 +&#x3D; 附加且不影响即时或延时属性</li></ul></li><li>延时变量</li><li>export</li></ul></li></ul></li><li>Makefile函数<ul><li>$(foreach var, list, text)</li><li>$(filter pattern…, text) &#x2F;&#x2F;对text中取出符合pattern格式的值</li><li>$(filter-out pattern…, text) &#x2F;&#x2F;对text取出不符合pattern格式的值</li><li>$(wildcard pattern) pattern定义了文件名的格式 wildcard函数取出当前目录中符合格式且实际存在的文件</li><li>$(patsubst pattern, replacement, text)&#x2F;&#x2F;对列表中符合pattern格式的替换为replacement</li></ul></li><li>Makefile实例<ul><li>改进：<a href="https://blog.csdn.net/QQ1452008/article/details/50855810">生成头文件依赖</a><ul><li>gcc -M c.c &#x2F;&#x2F;打印出c.c文件的依赖</li><li>gcc -M -MF c.d c.c &#x2F;&#x2F;将依赖写入c.d文件</li><li>gcc -c -o c.o c.c -MD -MF c.d &#x2F;&#x2F;编译c.c得到c.o并将依赖写入c.d</li><li>若不支持头文件依赖，那么修改.h依赖文件后，使用make命令，无法更新编译，需要手动指定头文件依赖</li><li>Makefile<pre class="line-numbers language-none"><code class="language-none">objs&#x3D;a.o b.o c.odep_files&#x3D;$(patsubst %,.%.d,$(objs))#判断是否存在.ddep_files:&#x3D;$(wildcard $(dep_files))&#x2F;&#x2F;判断是否含有.d依赖文件test:$(objs) gcc -o test $^#@echo dep_files&#x3D;$(dep_files)#c.o:c.c c.h#将.d依赖文件包含进来#如果存在.d文件，那么可以包含ifneq ($(dep_files),)include $(dep_files)endif&#x2F;&#x2F;依赖文件列表非空，添加依赖文件%.o:%.c gcc -c -o $@ $&lt; -MD -MF .$@.d.PHONY: cleanclean: rm *.o testdistclean: rm $(dep_files)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li>添加CFLAGS<ul><li>CFLAGS &#x3D; -Werror 将所有warning变为Error</li><li>-I. 使用当前目录</li><li>-Iinclude 指定”include”文件夹作为搜索头文件的路径</li><li>gcc $(CFLAGS) -c -o $@ $&lt; -MD -MF .$@.d</li></ul></li></ul></li><li>通用Makefile</li></ul><h3 id="4-4文件IO"><a href="#4-4文件IO" class="headerlink" title="4.4文件IO"></a>4.4文件IO</h3>]]></content>
+      
+      
+      <categories>
+          
+          <category> Linux </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Linux </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Eigen矩阵运算</title>
+      <link href="/2025/03/28/qt/eigen-ju-zhen-yun-suan/"/>
+      <url>/2025/03/28/qt/eigen-ju-zhen-yun-suan/</url>
+      
+        <content type="html"><![CDATA[<h1 id="QtCreator中的Eigen矩阵运算"><a href="#QtCreator中的Eigen矩阵运算" class="headerlink" title="QtCreator中的Eigen矩阵运算"></a>QtCreator中的Eigen矩阵运算</h1><p>参考资料:</p><ul><li><a href="https://www.cnblogs.com/ybqjymy/p/18110273">Qt配置Eigen</a></li><li><a href="https://blog.csdn.net/xiaoxiao133/article/details/82876620">Qt Creator中使用 Eigen和openMP</a></li><li><a href="https://blog.csdn.net/gengshenghong/article/details/7003110">Eigen并行计算</a></li></ul><h2 id="1-OpenMP并行加速"><a href="#1-OpenMP并行加速" class="headerlink" title="1 OpenMP并行加速"></a>1 OpenMP并行加速</h2><h3 id="1-1-pro工程文件配置"><a href="#1-1-pro工程文件配置" class="headerlink" title="1.1 pro工程文件配置"></a>1.1 pro工程文件配置</h3><pre class="line-numbers language-none"><code class="language-none">1 QMAKE_CXXFLAGS+&#x3D; -openmp2 QMAKE_LFLAGS +&#x3D;  -openmp1 QMAKE_CXXFLAGS+&#x3D; &#x2F;openmp注意.cpp中添加头文件引用#include&quot;omp.h&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre><h3 id="1-2-OpenMP指令使用"><a href="#1-2-OpenMP指令使用" class="headerlink" title="1.2 OpenMP指令使用"></a>1.2 OpenMP指令使用</h3><pre class="line-numbers language-none"><code class="language-none">#pragma omp parallel for num_threads(4) reduction(+:sum)<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+            <tag> Eigen </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>OpenMP在Qt中的使用</title>
+      <link href="/2025/03/28/qt/bing-xing-ji-suan-openmp/"/>
+      <url>/2025/03/28/qt/bing-xing-ji-suan-openmp/</url>
+      
+        <content type="html"><![CDATA[<h1 id="QtCreator中的OpenMP并行加速"><a href="#QtCreator中的OpenMP并行加速" class="headerlink" title="QtCreator中的OpenMP并行加速"></a>QtCreator中的OpenMP并行加速</h1><p>参考资料:</p><ul><li><a href="https://www.cnblogs.com/ybqjymy/p/17462845.html">Qt配置OpenMP</a></li><li><a href="https://blog.csdn.net/irelandken/article/details/6864265">例程学习</a></li><li><a href="https://ask.csdn.net/questions/8167491">疑难指导-qt配置openmp正常，为什么多线程运行不出来？</a></li></ul><h2 id="1-OpenMP并行加速"><a href="#1-OpenMP并行加速" class="headerlink" title="1 OpenMP并行加速"></a>1 OpenMP并行加速</h2><h3 id="1-1-pro工程文件配置"><a href="#1-1-pro工程文件配置" class="headerlink" title="1.1 pro工程文件配置"></a>1.1 pro工程文件配置</h3><pre class="line-numbers language-none"><code class="language-none">MSVC1 QMAKE_CXXFLAGS+&#x3D; -openmp2 QMAKE_LFLAGS +&#x3D;  -openmp1 QMAKE_CXXFLAGS+&#x3D; &#x2F;openmp注意.cpp中添加头文件引用#include&quot;omp.h&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><h3 id="1-2-OpenMP指令使用"><a href="#1-2-OpenMP指令使用" class="headerlink" title="1.2 OpenMP指令使用"></a>1.2 OpenMP指令使用</h3><pre class="line-numbers language-none"><code class="language-none">#pragma omp parallel for num_threads(4) reduction(+:sum)<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+            <tag> OpenMP </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL远程连接</title>
+      <link href="/2025/03/19/mysql/mysql-yuan-cheng-lian-jie/"/>
+      <url>/2025/03/19/mysql/mysql-yuan-cheng-lian-jie/</url>
+      
+        <content type="html"><![CDATA[<h1 id="MySQL远程连接"><a href="#MySQL远程连接" class="headerlink" title="MySQL远程连接"></a>MySQL远程连接</h1><p>参考资料:</p><ul><li><a href="https://blog.csdn.net/Sonsay/article/details/110930030">远程连接MySQL数据库</a></li><li><a href="https://blog.csdn.net/whatname123/article/details/127408381">修改防火墙配置入站规则，使局域网其他电脑可访问本机</a></li></ul><h2 id="1-远程连接MySQL数据库"><a href="#1-远程连接MySQL数据库" class="headerlink" title="1 远程连接MySQL数据库"></a>1 远程连接MySQL数据库</h2><h3 id="1-1-打开防火墙"><a href="#1-1-打开防火墙" class="headerlink" title="1.1 打开防火墙"></a>1.1 打开防火墙</h3><ul><li>须打开防火墙，才可以ping通</li><li>限制指定ip可访问的方法：阅读<a href="https://blog.csdn.net/whatname123/article/details/127408381">修改防火墙配置入站规则，使局域网其他电脑可访问本机</a></li><li>查找本机IP地址命令：<code>ipconfig /all</code> 查看IPv4的地址</li></ul><h3 id="1-2-远程连接数据库命令"><a href="#1-2-远程连接数据库命令" class="headerlink" title="1.2 远程连接数据库命令"></a>1.2 远程连接数据库命令</h3><ul><li>安装MySQL时须选择支持远程连接<ul><li><code>mysql -h192.168.5.116 -P3306 -uroot -p123456</code></li></ul></li><li>若安装时未选择支持，配置运行远程连接方法：<ul><li>localhost登入mysql后，更改 “mysql” 数据库里的 “user” 表里的 “host” 项，将”localhost”改称”%”<pre class="line-numbers language-none"><code class="language-none">update user set host &#x3D; &#39;%&#39; where user &#x3D; &#39;root&#39;;select host, user from user;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li></ul></li></ul><h3 id="1-3-Matlab测试远程连接MySQL"><a href="#1-3-Matlab测试远程连接MySQL" class="headerlink" title="1.3 Matlab测试远程连接MySQL"></a>1.3 Matlab测试远程连接MySQL</h3><ul><li>1.ODBC配置IP对应的数据源<ul><li><img src="/image.png" alt="ODBC配置IP数据源"></li></ul></li><li>2.Matlab连接数据库<ul><li><code>conn=database(&#39;LabPC_SQL&#39;,&#39;root&#39;,&#39;password&#39;);</code></li><li><code>exec(conn,&quot;SQL语句&quot;);</code></li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> MySQL </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> MySQL </tag>
+            
+            <tag> IP </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>AI使用指南</title>
+      <link href="/2025/03/02/aigc/deepseek-shi-yong-zhi-nan/"/>
+      <url>/2025/03/02/aigc/deepseek-shi-yong-zhi-nan/</url>
+      
+        <content type="html"><![CDATA[<h1 id="AIGC-AI做高质量PPT从写到讲的全流程拆解"><a href="#AIGC-AI做高质量PPT从写到讲的全流程拆解" class="headerlink" title="AIGC_AI做高质量PPT从写到讲的全流程拆解"></a>AIGC_AI做高质量PPT从写到讲的全流程拆解</h1><ul><li><a href="https://www.bilibili.com/video/BV17sAte3Exh">AI做高质量PPT全流程拆解</a></li></ul><h2 id="三种PPT文案生成法"><a href="#三种PPT文案生成法" class="headerlink" title="三种PPT文案生成法"></a>三种PPT文案生成法</h2><ul><li><p>1.身份+任务+细节约束+输出格式</p><blockquote><ul><li>我是一名【刚转岗半年的新媒体运营】，</li><li>现在需要面向【市场总监】，做一个【第三季度某音&#x2F;某书双平台运营情况】的 PPT，</li><li>希望突出【突出双渠道的ROI对比;分析爆款内容特征】，汇报时长在【20min】，要求内容专业且适合演讲，</li><li>请生成【详细大纲及内容框架】</li></ul></blockquote><ul><li><p>我是一名【xxx】，现在需要面向【xxx】，做一个【xxx】的 PPT，希望突出【xxx】，汇报时长在【xxx】，要求内容专业且适合演讲，请生成〖xxx】</p></li><li><p>进阶公式 <img src="/image-1.png" alt="进阶公式"></p></li></ul></li><li><p>2.指定学习物料</p><ul><li>角色定义+任务内容+工作流程+输出限制</li><li><img src="/image-2.png" alt="alt text"></li></ul></li><li><p>3.反向PUA训练</p><ul><li>请用SCQA模型重新解构这个汇报框架，检查故事线是否完整</li><li>如果你是雷军，会怎么骂这份汇报</li></ul></li><li><p>END：最后请以Markdown格式输出大纲</p></li><li><p>获得Markdown大纲之后，在Kimi的PPT助手中获取文案，并获得一键PPT</p></li></ul><h2 id="资料搜索"><a href="#资料搜索" class="headerlink" title="资料搜索"></a>资料搜索</h2><ul><li>秘塔AI搜索使用方法<br><img src="/image-3.png" alt="alt text"></li><li>注意打开全网R1长思考</li></ul><h2 id="逻辑化排版"><a href="#逻辑化排版" class="headerlink" title="逻辑化排版"></a>逻辑化排版</h2><p><img src="/image-4.png" alt="alt text"></p><ul><li>排版思路AI工具-Napkin-输文案即可</li></ul><h2 id="接入PPT宏命令"><a href="#接入PPT宏命令" class="headerlink" title="接入PPT宏命令"></a>接入PPT宏命令</h2><p><img src="/image-5.png" alt="alt text"></p><ul><li>在Deepseek中获取代码后并在PPT中载入宏代码</li><li>AI生图提示词</li></ul><h2 id="演讲稿"><a href="#演讲稿" class="headerlink" title="演讲稿"></a>演讲稿</h2><ul><li>PPT做好之后，转为图片格式，并发送给Kimi</li><li><blockquote><p>你是一位在演讲稿撰写方面有着丰富经验的专家，现在需要将我上传的PPT页面图片内容，:转化为高质量的演讲稿，能够准确传达PPT页面图片的核心内容。需要 按照演讲稿的标准格式输出</p></blockquote></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AIGC </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AIGC </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Origin科研绘图</title>
+      <link href="/2024/09/09/lun-wen-fang-fa/origin-ruan-jian-shi-yong/"/>
+      <url>/2024/09/09/lun-wen-fang-fa/origin-ruan-jian-shi-yong/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Origin科研绘图"><a href="#Origin科研绘图" class="headerlink" title="Origin科研绘图"></a>Origin科研绘图</h2><ul><li>Win10+MATLAB18b+Mathematica 9.0(Radia)</li></ul><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1BA411i7PT">Origin科研绘图超快速上手指南</a></li></ul><h3 id="元素"><a href="#元素" class="headerlink" title="元素"></a>元素</h3><ul><li>Book</li><li>Graph三层次<ul><li>底层：画布</li><li>中间层：坐标系</li><li>顶层：图线，折线、散点、柱状图</li></ul></li></ul><h3 id="绘图十步骤"><a href="#绘图十步骤" class="headerlink" title="绘图十步骤"></a>绘图十步骤</h3><ol><li>新建工程</li><li>创建空Book，导入数据</li><li>创建空Graph，设置画布的尺寸</li></ol><hr><ol start="4"><li>添加坐标系，设置坐标系的位置与尺寸</li><li>绘制图线</li></ol><hr><ol start="6"><li>设置坐标轴格式</li><li>设置线的格式</li><li>设置标题格式</li><li>添加并设置图例</li><li>保存工程，导出图片</li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> Origin </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> MATLAB </tag>
+            
+            <tag> Origin </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Mathematica软件入门</title>
+      <link href="/2024/04/30/mathematica/mathe-learn/"/>
+      <url>/2024/04/30/mathematica/mathe-learn/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Mathematica使用学习"><a href="#Mathematica使用学习" class="headerlink" title="Mathematica使用学习"></a>Mathematica使用学习</h2>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mathematica </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Mathematica </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Digital Twin</title>
+      <link href="/2024/03/28/dt-mls/dt-concept/"/>
+      <url>/2024/03/28/dt-mls/dt-concept/</url>
+      
+        <content type="html"><![CDATA[<h1 id="DT——Concept"><a href="#DT——Concept" class="headerlink" title="DT——Concept"></a>DT——Concept</h1><p>引言：</p><ul><li>Conference Task</li></ul><h2 id="1-Digital-twin-method-and-application-practice-of-spacecraft-system-driven-by-mechanism-data"><a href="#1-Digital-twin-method-and-application-practice-of-spacecraft-system-driven-by-mechanism-data" class="headerlink" title="1. Digital twin method and application practice of spacecraft system driven by mechanism data"></a>1. Digital twin method and application practice of spacecraft system driven by mechanism data</h2><ul><li>标题译_机械数据驱动的航天器系统的数字孪生方法和应用实践</li></ul><h3 id="1-1-DT的概念"><a href="#1-1-DT的概念" class="headerlink" title="1.1 DT的概念"></a>1.1 DT的概念</h3><ul><li>一种在数字空间中创建物理实体的虚拟模型。它利用数据 模拟物理实体在真实环境中的行为，通过虚拟与现实的交互反馈、数据融合分析或决策迭代优化，为物理实体增加或扩展新的功能</li></ul><p><img src="https://pic.imgdb.cn/item/6604e19d9f345e8d032916a5.png" alt="数字孪生的概念"></p><h3 id="1-2-DT六大应用"><a href="#1-2-DT六大应用" class="headerlink" title="1.2 DT六大应用"></a>1.2 DT六大应用</h3><ul><li>模拟：在数字世界中模拟实物的行为。然后利用模型来扩展在物理空间中难以甚至无法实现的实验和训练。</li><li>监测：基于有限的测量数据，通过模型反转所有变量集的状态。然后，利用变量扩大监控范围，实现基于模型的全面监控。</li><li>评估：借助模型和测量数据，对系统进行深入的状态和性能评估。</li><li>预测：以系统当前状态为初始条件。系统根据超级计算机模型快速预测其未来状态。</li><li>优化：对运行控制算法或运行维护策略进行优化和升级，算法或系统运维策略。</li><li>控制：确保数字孪生直接参与物理控制回路，数字孪生增强了控制器的功能和性能。</li></ul><h3 id="1-3-DT五个层级"><a href="#1-3-DT五个层级" class="headerlink" title="1.3 DT五个层级"></a>1.3 DT五个层级</h3><ul><li>高度拟真：虚拟数字体代表了物理空间的高保真模拟状态及行为状态。</li><li>数物同步：孪生模型接收物理数据驱动，并与物理空间同步运行</li><li>数物验证：孪生模型能真实反映和预测物理空间的状态。</li><li>数物集成：数字双胞胎与物理对象之间的双向互动。该集成能通过数字体来完成优化和控制物理体。</li><li>运行生态系统：单系统和多系统的DT应用</li></ul><h3 id="1-4-其他"><a href="#1-4-其他" class="headerlink" title="1.4 其他"></a>1.4 其他</h3><ul><li><p>介绍了数据来自于此平台MWORKS的建模与仿真</p></li><li><p><strong>网络物理融合系统的模型框架</strong><br><img src="https://pic.imgdb.cn/item/6604e5529f345e8d033a6824.png"></p><ul><li>思考，如何引入到磁浮工作台上的各项任务上来？</li></ul></li><li><p>利用机械和数据完成<strong>混合构建与演化</strong>，构建同步连接？双向互动？<br><img src="https://pic.imgdb.cn/item/6604e7ea9f345e8d034728fa.png"></p></li><li><p>利用有限的<strong>测量数据</strong>进行感知、绘图<br><img src="https://pic.imgdb.cn/item/6604e8219f345e8d03482406.png"></p></li><li><p>利用孪生平台MWORKS<strong>完成孪生应用</strong><br><img src="https://pic.imgdb.cn/item/6604e8669f345e8d03497866.png"></p></li><li><p>其他内容可以查找原文</p></li></ul><h3 id="1-5-结论"><a href="#1-5-结论" class="headerlink" title="1.5 结论"></a>1.5 结论</h3><ul><li>DT是一项综合技术，还在发展中</li></ul><h2 id="2-A-digital-twin-based-analysis-method-to-assess-geometric-variations-for-parts-in-batch-production"><a href="#2-A-digital-twin-based-analysis-method-to-assess-geometric-variations-for-parts-in-batch-production" class="headerlink" title="2. A digital twin-based analysis method to assess geometric variations for parts in batch production"></a>2. A digital twin-based analysis method to assess geometric variations for parts in batch production</h2><ul><li>标题译_数字孪生分析方法评估生产零件的几何变化</li></ul><h2 id="3-A-novel-framework-for-online-decision-making-and-feedback-optimization-of-complex-products-process-parameter-based-on-edge-cloud-collaboration"><a href="#3-A-novel-framework-for-online-decision-making-and-feedback-optimization-of-complex-products-process-parameter-based-on-edge-cloud-collaboration" class="headerlink" title="3. A novel framework for online decision-making and feedback optimization of complex products process parameter based on edge-cloud collaboration"></a>3. A novel framework for online decision-making and feedback optimization of complex products process parameter based on edge-cloud collaboration</h2><ul><li>标题译_基于边缘云协作的复杂产品工艺参数在线决策和反馈优化新框架<br><img src="https://pic.imgdb.cn/item/6604f82d9f345e8d03983a6e.png"></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> DT </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> DT </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Matlab神经网络与优化算法</title>
+      <link href="/2024/03/15/matlabnn/matnn/"/>
+      <url>/2024/03/15/matlabnn/matnn/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Matlab神经网络"><a href="#Matlab神经网络" class="headerlink" title="Matlab神经网络"></a>Matlab神经网络</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV18D4y187ZZ">MATLAB神经网络和优化算法入门</a></li></ul><h2 id="1-初步学习"><a href="#1-初步学习" class="headerlink" title="1.初步学习"></a>1.初步学习</h2><ul><li>感知器神经网络</li><li>利用训练后的网络进行分类</li><li>线性神经网络预测</li><li>BP神经网络信号拟合</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Matlab </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Matlab </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Radia_Mar.</title>
+      <link href="/2024/03/15/radia/march/"/>
+      <url>/2024/03/15/radia/march/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Radia"><a href="#Radia" class="headerlink" title="Radia"></a>Radia</h1><p>引言：</p><p>参考资料：</p><h2 id="1-帮助指令"><a href="#1-帮助指令" class="headerlink" title="1. 帮助指令"></a>1. 帮助指令</h2><ul><li>? radFldEnrFrc</li><li>? rad*</li></ul>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>1月技巧经验汇总</title>
+      <link href="/2024/01/23/ji-qiao-hui-zong/24-1-ji-qiao-jing-yan-hui-zong/"/>
+      <url>/2024/01/23/ji-qiao-hui-zong/24-1-ji-qiao-jing-yan-hui-zong/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1月技巧经验汇总"><a href="#1月技巧经验汇总" class="headerlink" title="1月技巧经验汇总"></a>1月技巧经验汇总</h1><ul><li>经验记录</li></ul><h2 id="1-好东西"><a href="#1-好东西" class="headerlink" title="1 好东西"></a>1 好东西</h2><h3 id="1-1-AI搜索高质量文献引用"><a href="#1-1-AI搜索高质量文献引用" class="headerlink" title="1.1 AI搜索高质量文献引用"></a>1.1 AI搜索高质量文献引用</h3><ul><li><a href="https://www.bilibili.com/video/BV1up4y1K7xo">贼好用的找某观点高质量文献的方法</a></li></ul><p>三个资源</p><ul><li><a href="https://www.perplexity.ai/">AI搜索文献网站_Perplexity</a></li><li>Google浏览器，扩展Extension，显示文献排名<ul><li>EasyPubMedicine</li><li>easyScholar</li></ul></li><li>科学上网</li><li>可以<strong>辅助找高质量文献的引用</strong>，相似观点找引用；或许也可以<strong>查创新点</strong>?<ul><li>先把论文写出来，然后再放论文插入位点</li><li>你产生了一个idea，但是很有可能这个点已经做了，被抛弃了。</li></ul></li></ul><h3 id="1-2-12306软件"><a href="#1-2-12306软件" class="headerlink" title="1.2 12306软件"></a>1.2 12306软件</h3><ul><li><a href="https://www.bilibili.com/video/BV1pg4y127Ls">中国人唯一离不开的软件，你却根本不会用？</a></li><li>无座票<ul><li>即，<strong>无</strong>固定<strong>座</strong>位票</li><li>三种指示灯红黄绿<ul><li>红，此时该座有人</li><li>黄，该座下站有人</li><li>绿，该座下站无人</li></ul></li></ul></li><li>当无座票都没有时，点击时间，查看列车途径点，可以选择离目的地近的购票，之后补票即可</li><li>当坐过站了，不要慌，找列车工作人员，开客运记录证明，下车之后找工作人员免费回程</li><li>身份证忘带了，APP中开临时身份证</li></ul><h3 id="1-3-十大神器"><a href="#1-3-十大神器" class="headerlink" title="1.3 十大神器"></a>1.3 十大神器</h3><ul><li><a href="https://www.bilibili.com/video/BV1ya4y1B7W4">2023年度10大打工人神器，直接封神！</a></li><li>链接<ul><li>1.<a href="https://clipdrop.co/"><strong>图片处理_抠图增强AI填充clipdrop</strong></a><ul><li>谷歌账号登录</li><li>已验证，背景去除(remove_background)，AI填充(Uncrop)</li><li>其他功能<ul><li>图片换脸</li><li>更换背景</li><li>选择去除物体等等</li></ul></li></ul></li><li>2.<a href="https://tinywow.com/"><strong>文件格式转换网站_tinywow</strong></a><ul><li>除了文件转换，该网页还有根据Topic写Essay功能，可以辅助编点内容</li></ul></li><li>3.<a href="https://aigc.baidu.com/">度加剪辑</a>，也有app<ul><li>AI剪辑工具，写主题，自动脚本和文案</li></ul></li><li>4.<a href="https://wantwords.net/">wantwords</a><ul><li>写个描述，就能查出词汇，或句子</li></ul></li><li>5.<a href="https://www.chatlaw.cloud/">chatlaw</a><ul><li>免费帮我打官司</li></ul></li><li>6.<a href="https://chatexcel.com/">chatExcel</a><ul><li>辅助做Excel，AI编辑Excel</li></ul></li><li>7.<a href="https://www.yoojober.com/">yoojober</a><ul><li>AI写简历模板</li><li>自己的简历修改</li></ul></li><li>8.<a href="https://www.powtoon.com/">powtoon</a><ul><li>PPT，AI制作</li></ul></li><li>9.[eyecontact]<ul><li>修改视频的眼部注视于屏幕</li><li>项目链接：<a href="https://www.nvidia.com/en-us/geforce/broadcasting/broadcast-app/">https://www.nvidia.com/en-us/geforce/broadcasting/broadcast-app/</a></li><li>安装教程：<a href="https://www.nvidia.com/en-us/geforce/guides/broadcast-app-setup-guide/">https://www.nvidia.com/en-us/geforce/guides/broadcast-app-setup-guide/</a></li></ul></li><li>10.<a href="http://oeasy.org/">全方位自学网站oeasy</a></li></ul></li></ul><h2 id="2-真宝藏"><a href="#2-真宝藏" class="headerlink" title="2 真宝藏"></a>2 真宝藏</h2><h3 id="2-1-文献公式编辑工具"><a href="#2-1-文献公式编辑工具" class="headerlink" title="2.1 文献公式编辑工具"></a>2.1 文献公式编辑工具</h3><ul><li><a href="https://www.bilibili.com/video/BV1Jf4y1S7Y9">mathpix软件使用教程</a></li><li>Mathpix</li><li>MathType</li><li>两者配合即可</li></ul><h3 id="2-2-优质内容"><a href="#2-2-优质内容" class="headerlink" title="2.2 优质内容"></a>2.2 优质内容</h3><ul><li><a href="#11-ai%E6%90%9C%E7%B4%A2%E9%AB%98%E8%B4%A8%E9%87%8F%E6%96%87%E7%8C%AE%E5%BC%95%E7%94%A8">1.1</a></li><li><a href="#13-%E5%8D%81%E5%A4%A7%E7%A5%9E%E5%99%A8">1.3.1</a></li><li><a href="#13-%E5%8D%81%E5%A4%A7%E7%A5%9E%E5%99%A8">1.3.2</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 月汇总 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 月汇总 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Qt获取Matlab窗口</title>
+      <link href="/2024/01/05/qt/qt-huo-qu-matlabfig-chuang-kou/"/>
+      <url>/2024/01/05/qt/qt-huo-qu-matlabfig-chuang-kou/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Qt获取Matlab窗口学习记录"><a href="#Qt获取Matlab窗口学习记录" class="headerlink" title="Qt获取Matlab窗口学习记录"></a>Qt获取Matlab窗口学习记录</h1><h2 id="1-句柄方案"><a href="#1-句柄方案" class="headerlink" title="1 句柄方案"></a>1 句柄方案</h2><h3 id="1-1-句柄的学习"><a href="#1-1-句柄的学习" class="headerlink" title="1.1 句柄的学习"></a>1.1 句柄的学习</h3><ul><li>参考资料:<ul><li><a href="https://www.bilibili.com/video/BV1Vb4y1d7rp/">句柄与指针，傻傻分不清</a></li><li><a href="https://www.bilibili.com/video/BV1rK4y147Lb/">QT获取其他窗口句柄</a></li></ul></li></ul><h4 id="1-1-1-句柄与指针"><a href="#1-1-1-句柄与指针" class="headerlink" title="1.1.1 句柄与指针"></a>1.1.1 句柄与指针</h4><ul><li>Windows中分用户层和内核层以及硬件抽象层<ul><li>用户层中有多个应用进程</li><li>内核层仅一个进程</li><li>HAL中包含(声卡、显卡、硬盘、网卡等)</li></ul></li><li>指针是什么？<ul><li>C<ul><li>int* pAge&#x3D;malloc(sizeof(int));</li></ul></li><li>C++<ul><li>int* pAgeCPP &#x3D; new int;</li></ul></li><li>栈(指针)与堆(对象或数组)</li><li>三层中，内核层必定要处理硬件，此时用指针思路操作，内核层只会有唯一的一个声卡实例。用户层访问时，会用到同一个实例。一个声卡被多个进程同时播放音乐。</li></ul></li><li>句柄是什么？<ul><li>用户层中存在一个资源列表，其中的句柄列表会映射到内核层中的实例引用。</li><li><strong>句柄的本质是对底层硬件实例的指针的引用</strong>。</li><li>为什么要用句柄？<ul><li>节约资源，更高效实现资源管理</li></ul></li></ul></li></ul><h4 id="1-1-2-获取窗口句柄"><a href="#1-1-2-获取窗口句柄" class="headerlink" title="1.1.2 获取窗口句柄"></a>1.1.2 获取窗口句柄</h4>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>24.01文献阅读</title>
+      <link href="/2024/01/04/24-jan-reading/"/>
+      <url>/2024/01/04/24-jan-reading/</url>
+      
+        <content type="html"><![CDATA[<h1 id="24-1月文献阅读"><a href="#24-1月文献阅读" class="headerlink" title="24_1月文献阅读"></a>24_1月文献阅读</h1><p>引言：</p><ul><li>年终汇报的主题可能是MPC?</li></ul><p>参考资料：</p><ul><li><a href="https://space.bilibili.com/230105574">DR_CAN工程师主页</a></li><li><a href="https://www.bilibili.com/video/BV1cL411n7KV/">MPC模型预测控制器</a></li><li><a href="https://www.bilibili.com/video/BV1U54y1J7wh/">MPC公式到代码</a></li></ul><h2 id="1-Real-Time-Application-of-Robust-Offset-Free-MPC-in-Maglev-Planar-Machine-2023-TIE-Xu-F-Q"><a href="#1-Real-Time-Application-of-Robust-Offset-Free-MPC-in-Maglev-Planar-Machine-2023-TIE-Xu-F-Q" class="headerlink" title="1. Real-Time Application of Robust Offset-Free MPC in Maglev Planar Machine_2023_TIE_Xu, F. Q."></a>1. Real-Time Application of Robust Offset-Free MPC in Maglev Planar Machine_2023_TIE_Xu, F. Q.</h2><ul><li>题译MPC在磁浮平面电机的鲁棒无偏移实时应用</li><li>摘要<ul><li><blockquote><p>本文使用MPC改进了磁浮平面电机的瞬态响应</p></blockquote></li><li><blockquote><p>实验表明，所提控制器在轨迹跟踪方面优于抗倒转PID、开关线性二次调节器、baselineMPC、非线性MPC</p></blockquote></li></ul></li><li>Index Terms<ul><li>Magnetically levitated (maglev) planar machine, </li><li>model predictive control (MPC), </li><li>transient response</li></ul></li></ul><h3 id="1-1-Introduction"><a href="#1-1-Introduction" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h3><ul><li>磁浮致动器在精密工业中很重要，有前景；很多人研究控制策略</li><li>但是！<strong>现有研究集中在抑制干扰和抑制不确定性上</strong>，以提高跟踪性能。对响应速度的关注较少。</li><li>然后将一些MPC理论特性的优点：模型、预测未来状态，求解最优化序列等。</li><li>要对多自由度的高精运动控制系统应用MPC，存在3点挑战<ul><li>要有更好的步进跟踪性能，预测区间需要足够长，增大了实时的优化求解难度</li><li>多自由度运动、加大了计算负担</li><li>由于磁浮平面电机的非线性、多轴耦合以及装配误差，需要用到实时鲁棒控制来保证闭环性能。<strong>鲁棒MPC需要增加额外的状态约束来处理不确定性</strong>，加大了计算复杂度。</li><li>总结一句话就是，多自由度系统、高性能，就很难算。</li></ul></li><li>本文主要贡献<ul><li>设计MPC，改善了在磁浮平面电机上的瞬态性能</li><li>磁浮系统的无偏性能评估</li><li>MPC鲁棒稳定性实现</li><li>实验结果是，MPC方法有更短的平稳时间、更快的响应速度、更小的跟踪误差</li></ul></li></ul><h3 id="1-2-系统动态模型"><a href="#1-2-系统动态模型" class="headerlink" title="1.2 系统动态模型"></a>1.2 系统动态模型</h3><ul><li>动力系统模型<ul><li>用P&#x3D;Vt+at^2&#x2F;2 和 V&#x3D;at</li><li>构建状态空间方程</li></ul></li><li>逆模方法<ul><li>推力实际上是电流</li><li>力和转矩如何通过电流计算</li></ul></li></ul><h3 id="1-3-控制策略"><a href="#1-3-控制策略" class="headerlink" title="1.3 控制策略"></a>1.3 控制策略</h3><ul><li><blockquote><p>使用MPC能有效提高瞬态特性，采用PID补偿器补偿外部扰动，以实现无偏移MPC。</p></blockquote></li><li><blockquote><p>摆出控制框图，系统的输入是力而非电流，故逆模单元中的电流用虚线表示</p></blockquote></li><li>MPC平面跟踪<ul><li>理论推导，将状态空间方程转化为二次规划形式</li><li>以预测输入矩阵最优化Cost_Function</li></ul></li><li>输入约束<ul><li>考虑电流约束，，，力约束?</li></ul></li></ul><h3 id="1-4-无偏MPC及鲁棒稳定性"><a href="#1-4-无偏MPC及鲁棒稳定性" class="headerlink" title="1.4 无偏MPC及鲁棒稳定性"></a>1.4 无偏MPC及鲁棒稳定性</h3><blockquote><p>因为要消除运动控制系统的稳态误差，同时还讨论其鲁棒稳定性</p></blockquote><ul><li><p>无偏MPC</p><ul><li>磁浮系统是稳态无偏的，要求<ul><li>满足输入约束</li><li>系统是稳定的</li></ul></li><li>因满足输入约束<ul><li>MPC优化等同于无约束优化</li></ul></li><li>看Remark1<ul><li>MPC控制中，输入约束之所以不生效，是由于?</li></ul></li></ul></li><li><p>预测区间长度保证了鲁棒稳定性</p><ul><li>一大段不是很懂</li><li>给出一个算法_用来计算预测区间长度N</li><li>一段证明，磁浮平面电机是鲁棒稳定的，只要证明了<strong>未来肯定会更好</strong></li><li>Ru 越大，Rε、Rω 越小，则N 越小</li><li>预测区间长度，若太小，运动性能不一定好；</li></ul></li></ul><h3 id="1-5-实验验证"><a href="#1-5-实验验证" class="headerlink" title="1.5 实验验证"></a>1.5 实验验证</h3><ul><li>系统集成，配置声明<ul><li>用了哪些传感器，在LabVIEW RealTime弄</li></ul></li><li>本方法与其他方法<ul><li>C0-所提MPC</li><li>C1-积分抗饱和PID</li><li>C2-开关LQR</li><li>C3-基线MPC</li><li>C4-非线性MPC</li></ul></li><li>对比实验<ul><li>阶跃响应<ul><li>到达稳定的时间，C0最短</li><li>3种MPC中，线性MPC比非线性的处理时间短，计算少</li><li>静态误差小</li></ul></li><li>轨迹跟踪<ul><li>跟踪误差反应瞬态性能</li><li>两个指标，均方根误差Erms和最大绝对误差Emax</li><li>C0相比C3经过了干扰修正</li></ul></li></ul></li><li>所提方法很好<ul><li>MPC能有效处理 输入约束</li><li>借助扰动观测器，实现了无偏定位</li><li>线性MPC比非线性MPC运动性能更好</li><li>本研究只重点考虑了输入约束，那状态约束?</li></ul></li></ul><h2 id="2-Error-Bounded-Tracking-of-Maglev-Planar-Motor-Based-on-Robust-Model-Predictive-Control-2023-TIE-Kaiyang-Zhang"><a href="#2-Error-Bounded-Tracking-of-Maglev-Planar-Motor-Based-on-Robust-Model-Predictive-Control-2023-TIE-Kaiyang-Zhang" class="headerlink" title="2. Error-Bounded Tracking of Maglev Planar Motor Based on Robust Model Predictive Control_2023_TIE_Kaiyang Zhang"></a>2. Error-Bounded Tracking of Maglev Planar Motor Based on Robust Model Predictive Control_2023_TIE_Kaiyang Zhang</h2><ul><li><p>基于鲁棒MPC的磁浮平面电机，有界误差跟踪</p></li><li><p>摘要</p><ul><li><blockquote><p>本文提出一种鲁棒MPC方案，用于实现磁浮平面电机的有界误差跟踪任务，动机在于将加工误差控制到所需的公差范围内</p></blockquote></li><li><blockquote><p>本系统包含测量位置、状态估计、干扰估计的MPC预测模型，好的控制信号，可消除干扰造成的稳态误差。</p></blockquote></li><li><blockquote><p>基于系统、动力学、约束条件，用迭代法得到_鲁棒控制不变式集Robust Control Invariant set，放到MPC中，以实现有界误差跟踪。完成实验后，发现所提方法能完成有界误差的跟踪任务。</p></blockquote></li></ul></li><li><p>Index Terms</p><ul><li>Error-bounded tracking, </li><li>maglev planar motor, </li><li>model predictive control (MPC), </li><li>robust control invariant (RCI)</li></ul></li></ul><h3 id="1-1-Introduction-1"><a href="#1-1-Introduction-1" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h3><ul><li>磁浮致动器在精密工业中很重要，有前景；很多人研究控制策略</li><li>但是！<strong>现有研究集中在抑制干扰和抑制不确定性上</strong>，以提高跟踪性能。对响应速度的关注较少。</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Read </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Read </tag>
+            
+            <tag> Magnetics </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>23.12文献阅读</title>
+      <link href="/2023/12/15/23-dec-reading/"/>
+      <url>/2023/12/15/23-dec-reading/</url>
+      
+        <content type="html"><![CDATA[<h1 id="12月文献阅读"><a href="#12月文献阅读" class="headerlink" title="12月文献阅读"></a>12月文献阅读</h1><p>引言：</p><p>参考资料：</p><ul><li><a href="https://yiiiaylmer.github.io/2023/10/08/2023.8-10/10-yue-ji-qiao-jing-yan-hui-zong/">文献检索</a></li></ul><h2 id="1-Overview-of-Analytical-Models-for-the-Design-of-Linear-and-Planar-Motors-2014-TMag-Jansen-J-W"><a href="#1-Overview-of-Analytical-Models-for-the-Design-of-Linear-and-Planar-Motors-2014-TMag-Jansen-J-W" class="headerlink" title="1. Overview of Analytical Models for the Design of Linear and Planar Motors_2014_TMag_Jansen, J. W."></a>1. Overview of Analytical Models for the Design of Linear and Planar Motors_2014_TMag_Jansen, J. W.</h2><ul><li>摘要<ul><li><blockquote><p>本文介绍线性平面电机的模型分析综述，对于磁浮平面电机和无芯多自由度电机的设计非常重要。2维、3维下基于磁表面电荷和傅里叶进行分析。</p></blockquote></li></ul></li><li>Index Terms<ul><li>Analytical models</li><li>linear synchronous motors</li><li>magnetic levitation</li><li>permanent magnets (PM)</li><li>planar motors.</li></ul></li><li>Conclusion<ul><li>谐波建模是对有槽和无槽电机进行二维分析的最合适方法。</li><li>磁表电荷模型不仅可以预测力和扭矩，还能预测它们的分布，对电机设计非常重要。</li><li>还可以考虑磁体特性和尺寸的个体差异</li></ul></li></ul><h3 id="1-1"><a href="#1-1" class="headerlink" title="1.1"></a>1.1</h3><ul><li><p>3D磁场建模</p><ul><li>周期性电机用谐波建模</li><li>非周期电机用电荷建模</li></ul></li><li><p>线性永磁电机</p><ul><li>实验，用模型计算预测和有限元分析对比推力，法向力和力矩</li><li>发现力矩几乎吻合</li></ul></li><li><p>平面电机</p><ul><li>磁通密度用谐波模型建模</li><li>电荷模型对磁体阵列中的每块磁体建模</li><li>实时控制：用力和力矩进行解耦</li></ul></li><li><p><strong>自己总结</strong></p><ul><li>谐波模型解决周期性计算，电荷模型解决非周期&#x2F;(对称?)计算，两者配合完成模型设计</li><li>要实现控制，需要利用电荷模型理论进行解耦</li></ul></li></ul><h2 id="2-Optimal-Design-of-Magneto-Force-Thermal-Parameters-for-Electromagnetic-Actuators-with-Halbach-Array-2021-Actuators"><a href="#2-Optimal-Design-of-Magneto-Force-Thermal-Parameters-for-Electromagnetic-Actuators-with-Halbach-Array-2021-Actuators" class="headerlink" title="2. Optimal Design of Magneto-Force-Thermal Parameters for Electromagnetic Actuators with Halbach Array_2021_Actuators"></a>2. Optimal Design of Magneto-Force-Thermal Parameters for Electromagnetic Actuators with Halbach Array_2021_Actuators</h2><ul><li>标题译_Halbach阵列电磁致动器的磁力，热参数优化</li><li>摘要<ul><li><blockquote><p>磁浮隔离系统需要致动器高精度、线性推力、低功耗。传统的电磁致动器磁力热特性不好，使用Halbach阵列能增强单侧磁场。</p></blockquote></li><li><blockquote><p>要想提高控制效果，磁场模型要更精确。本文基于等效磁荷法和场强叠加原理，建立了非等尺寸的Halbach阵列磁场分析模型。</p></blockquote></li><li><blockquote><p>对所提模型进行数值模拟，有限元分析，比较气隙磁通密度和Halbach尺寸参数，利用遗传算法进行多目标优化。实验验证差异仅5%。</p></blockquote></li></ul></li><li>Keywords<ul><li>electromagnetic actuators;</li><li>Halbach arrays; </li><li>magnetic levitation; </li><li>magnetic field modeling;</li><li>finite element simulation; </li><li>analysis; </li><li>multi-objective optimal design</li></ul></li></ul><h3 id="2-1-Introduction"><a href="#2-1-Introduction" class="headerlink" title="2.1 Introduction"></a>2.1 Introduction</h3><ul><li>前面老套路</li><li><blockquote><p>本文设计了一个Halbach阵列的非等尺寸致动器。</p></blockquote></li><li><blockquote><p>设计非等尺寸的永磁体并优化尺寸，能提高磁场强度，有利于提高精度并减少谐波畸变</p></blockquote></li><li><blockquote><p><strong>建立了非等尺寸的Halbach磁场分析模型</strong>。实验通过磁通密度和波动程度的分析表达式和数值模拟，<strong>比较了Halbach和传统永磁体</strong>的差异。</p></blockquote></li><li><blockquote><p><strong>对Halbach阵列进行多目标优化设计，得出最佳的磁力热参数</strong></p></blockquote></li></ul><h3 id="2-2非对称Hal阵列的磁场建模"><a href="#2-2非对称Hal阵列的磁场建模" class="headerlink" title="2.2非对称Hal阵列的磁场建模"></a>2.2非对称Hal阵列的磁场建模</h3><ul><li>矩形永磁体的空间磁场分析模型</li><li>参数化磁场模型</li><li><blockquote><p>非等尺寸、等尺寸Hal阵列、传统磁组间磁通密度比较</p></blockquote><ul><li>等尺寸Hal阵列和非等尺寸Hal阵列的平均磁通密度分别比传统阵列高出约 23% 和 17%。</li><li>相同的电流激励下，Hal阵列执行器能输出更大的推力。</li><li>等尺寸Hal阵列的磁通强度略大于非等尺寸Hal阵列。但是，非等尺寸Hal阵列的末端效应和磁通密度波动可以更明显地减少。</li></ul></li></ul><h3 id="2-3-Hal阵列尺寸参数的影响（数据图）"><a href="#2-3-Hal阵列尺寸参数的影响（数据图）" class="headerlink" title="2.3 Hal阵列尺寸参数的影响（数据图）"></a>2.3 Hal阵列尺寸参数的影响（数据图）</h3><ul><li>永磁体水平磁化宽度的影响</li><li>永磁体垂直&#x2F;水平磁化宽度比的影响</li></ul><h3 id="2-4-铁磁边界的影响"><a href="#2-4-铁磁边界的影响" class="headerlink" title="2.4 铁磁边界的影响"></a>2.4 铁磁边界的影响</h3><ul><li>所设计的致动器包含六个矩形永久磁铁和上下两个磁轭。要考虑铁磁边界处的影响</li><li>镜像法分析铁磁边界对气隙磁场的磁通密度影响，镜像法与有限元分析吻合</li></ul><h3 id="2-5-优化设计"><a href="#2-5-优化设计" class="headerlink" title="2.5 优化设计"></a>2.5 优化设计</h3><ul><li>优化的两个目标<ul><li>气隙处的磁通密度最大且分布均匀</li><li>应获得最小的线圈质量和最小的热能消耗</li></ul></li><li>优化方法<ul><li>遗传算法获得磁力-热力参数最优的致动器</li><li>根据非等尺寸Hal阵列的磁场分析模型，并考虑铁磁边界影响，用致动器各参数表达气隙中心的磁场</li></ul></li><li><strong>优化结果-附表</strong><ul><li>基于遗传算法，计算出了最佳气隙尺寸、最小线圈质量和最小散热量</li><li>优化__<strong>质量更轻，能耗更小，推力更大，单位电流的力更强</strong></li></ul></li></ul><h3 id="2-6-实验部分"><a href="#2-6-实验部分" class="headerlink" title="2.6 实验部分"></a>2.6 实验部分</h3><ul><li>利用优化后参数制造了致动器原型，并在精度位移平台搭建系统，测量气隙处沿 z 轴和 x 轴方向的磁通密度</li><li>结果比较<ul><li>测量结果与有限元模拟结果和分析结果进行了比较</li><li>X 轴方向的平均磁通密度为 0.85T，磁通密度波动为 4%</li><li>X 轴方向的平均磁通密度为 0.86T，磁通密度波动为 3.8%。</li></ul></li></ul><h3 id="2-7-结论"><a href="#2-7-结论" class="headerlink" title="2.7 结论"></a>2.7 结论</h3><ul><li><blockquote><p>利用等效磁荷法和场叠加原理，<strong>建立了非等尺寸Hal阵列的磁场分析模型</strong>。</p></blockquote></li><li><blockquote><p>用Maxwell模拟结果比较，<strong>验证模型的准确性</strong>。</p></blockquote></li><li><blockquote><p>研究尺寸参数对气隙磁通密度的影响。并用<strong>遗传算法完成多目标优化设计</strong>，获得最佳磁力热参数。</p></blockquote></li><li><blockquote><p>制作原型器件，搭建实验，完成<strong>实验验证</strong>，说明说提模型准确</p></blockquote></li><li>下一步，用本篇模型用到磁浮隔振系统的精密动态模型中。</li></ul><h2 id="3-Cascaded-iterative-learning-motion-control-of-precision-maglev-planar-motor-with-experimental-investigation-2023-ISA-Trans-Chuxiong-Hu"><a href="#3-Cascaded-iterative-learning-motion-control-of-precision-maglev-planar-motor-with-experimental-investigation-2023-ISA-Trans-Chuxiong-Hu" class="headerlink" title="3. Cascaded iterative learning motion control of precision maglev planar motor with experimental investigation_2023_ISA Trans_Chuxiong Hu"></a>3. Cascaded iterative learning motion control of precision maglev planar motor with experimental investigation_2023_ISA Trans_Chuxiong Hu</h2><ul><li>磁浮平面电机的级联迭代学习运动控制与研究</li><li>摘要<ul><li><blockquote><p>本文研究利用级联迭代学习控制（CILC）实现磁浮平面电机的跟踪运动及性能测试</p></blockquote></li><li><blockquote><p>CILC是在传统迭代学习控制（ILC）基础上更深入迭代，运动误差的精度更好</p></blockquote></li><li><blockquote><p>仿真研究和对比实验的结果表明，CILC方法优于PID和基于模型的前馈控制，也优于传统ILC。CILC应用前景客观。</p></blockquote></li></ul></li><li>Keywords<ul><li>Maglev planar motor</li><li>Motion control</li><li>Iterative learning control</li><li>Tracking accuracy</li></ul></li></ul><h3 id="3-1-Introduction"><a href="#3-1-Introduction" class="headerlink" title="3.1 Introduction"></a>3.1 Introduction</h3><ul><li>老套路，但是<ul><li>永磁同步电机大致分为两类，<strong>动磁铁式，动线圈式</strong></li><li>动磁的优势在于，磁铁移动，线圈定子，那么电源和冷却无需连接到运动器上，减少运动的干扰。でも、需要在所有运动范围下驱动，控制，冷却线圈。</li><li>动圈指线圈在移动器上，磁铁定子，优势在于减少了驱动器和功率放大器的数量。でも、动圈式的驱动器要与电源和冷却相连，系统会有干扰。</li></ul></li><li>其他术语及理解<ul><li>本文深入探讨ILC的收敛误差，包括重复误差和非重复误差。即由恒定干扰&#x2F;输入产生的误差与随机干扰&#x2F;输入产生的误差。</li><li>ILC的目标就是<strong>消除重复分量并抑制非重复分量</strong>。但现实是系统导致不允许完全消除重复分量，所以使用了CILC方法</li><li><strong>CILC即，通过连续执行多轮 ILC 来消除重复部分</strong></li><li>仿真结果验证CILC运行良好，实验研究对比数据发现CILC效果明显优异</li></ul></li><li>总之就是三点<ul><li>磁浮平面电机上使用了CILC方法来实现好的控制精度</li><li>证明CILC有效，能消除重复干扰引起的运动误差，但传统ILC不行</li><li>通过仿真和实验结果，CILC真的有效</li></ul></li><li>后面构成<ul><li>传统ILC存在的问题</li><li>CILC原理、精度、稳定性</li><li>SIMULINK模型中使用CILC方法</li><li>CILC方法的实验</li><li>结论</li></ul></li></ul><h3 id="3-2-ILC问题提出"><a href="#3-2-ILC问题提出" class="headerlink" title="3.2 ILC问题提出"></a>3.2 ILC问题提出</h3><ul><li>传统ILC不能完全消除重复分量，所以要用CILC</li></ul><h3 id="3-3-CILC理论"><a href="#3-3-CILC理论" class="headerlink" title="3.3 CILC理论"></a>3.3 CILC理论</h3><ul><li>CILC策略<ul><li>针对3.2_ILC的式子进行改进，优化迭代</li></ul></li><li>CILC收敛精度<ul><li>CILC 的两个误差分量,重复分量、非重复分量</li></ul></li><li>CILC稳定性</li></ul><h3 id="3-4-仿真测试"><a href="#3-4-仿真测试" class="headerlink" title="3.4 仿真测试"></a>3.4 仿真测试</h3><ul><li>本文使用H∞方法将 H(s)逆变换为模型优化问题，并验证方法可用</li><li>SIMULINK模拟</li><li>点对点的轨迹模拟</li><li>随机 NURBS 轨迹模拟</li></ul><h3 id="3-5-实验分析"><a href="#3-5-实验分析" class="headerlink" title="3.5 实验分析"></a>3.5 实验分析</h3><ul><li>实验设置</li><li>两个指标，四个方法，两个场景<ul><li>两个indicator<ul><li>跟踪误差的最大绝对值eM</li><li>跟踪误差的均方根eRMS</li></ul></li><li>四个method<ul><li>PID</li><li>基于模型的前馈补偿与PID反馈控制</li><li>并行结构的标准 ILC</li><li>CILC</li></ul></li><li>两个Case<ul><li>点对点轨迹</li><li>随机正弦曲线</li></ul></li></ul></li><li>摆图列表</li></ul><h3 id="3-6-结论"><a href="#3-6-结论" class="headerlink" title="3.6 结论"></a>3.6 结论</h3><ul><li>本文研究了CILC控制磁浮平面电机完成跟踪运动并进行性能测试。</li><li>CILC在ILC基础上优化，能消除重复分量。</li><li>通过仿真和实验，都说明了CILC更好。</li></ul><h2 id="4-Performance-Oriented-Precision-LARC-Tracking-Motion-Control-of-a-Magnetically-Levitated-Planar-Motor-With-Comparative-Experiments-2016-TIE-Chuxiong-Hu"><a href="#4-Performance-Oriented-Precision-LARC-Tracking-Motion-Control-of-a-Magnetically-Levitated-Planar-Motor-With-Comparative-Experiments-2016-TIE-Chuxiong-Hu" class="headerlink" title="4. Performance-Oriented Precision LARC Tracking Motion Control of a Magnetically Levitated Planar Motor With Comparative Experiments_2016_TIE_Chuxiong Hu"></a>4. Performance-Oriented Precision LARC Tracking Motion Control of a Magnetically Levitated Planar Motor With Comparative Experiments_2016_TIE_Chuxiong Hu</h2><ul><li>注重性能表现的磁浮平面电机精密LARC跟踪运动控制对比实验</li><li>摘要<ul><li><blockquote><p>本文对磁浮平面电机提出一种学习的自适应鲁棒控制（LARC），以实现良好的跟踪性能</p></blockquote></li><li><blockquote><p>平面电机由Hal阵列作定子，四组三相绕组的磁浮压盘作动子构成</p></blockquote></li><li><blockquote><p><strong>LARC方法包括自适应鲁棒控制（ARC）和迭代学习控制（ILC）</strong>，能在参数变化和不定干扰情况下实现高性能跟踪。</p></blockquote></li><li>设置了<strong>ARC、ILC和所提LARC进行比较实验</strong>，分别执行正弦、点对点和平面圆周跟踪运动。结果表面LARC方法远优于其他方法，跟踪性能好、稳定性好、具有参数适应能力和不定干扰鲁棒性。</li></ul></li><li>Index Terms<ul><li>Adaptive control, </li><li>iterative learning, </li><li>learning adaptive robust control (LARC), </li><li>magnetically levitated planar motor, </li><li>motion control, </li><li>tracking accuracy</li></ul></li></ul><h3 id="4-1-Introduction"><a href="#4-1-Introduction" class="headerlink" title="4.1 Introduction"></a>4.1 Introduction</h3><ul><li>老套路<ul><li>现有的控制器无法满足磁悬浮平面电机的要求，且无法应对参数变化和不确定干扰的挑战，跟踪性能仍有改进余地</li><li>对于磁悬浮平面电机而言，摩擦的影响可以完全忽略。系统动力学中存在的<strong>模型不确定性和不确定扰动</strong>是实现出色跟踪性能的<strong>主要障碍</strong>。</li><li><strong>自适应鲁棒控制（ARC）</strong>将传统的自适应控制和确定性鲁棒控制融为一体，有出色的参数适应能力和对非线性不确定性干扰的鲁棒性。</li><li><strong>迭代学习控制（ILC）</strong>是一种前馈控制策略，适用于在有限时间内重复执行相同任务的系统。从上一次迭代试验中提取信息，以修改下一次迭代试验的控制输入，从而提高控制性能。 でも、ILC通常难以应对模型参数变化和不确定干扰的实际挑战</li><li><strong>所提LARC方案</strong>，ARC基于平面电机的系统动力学模型，以提供参数自适应能力和一定的鲁棒性，ILC旨在生成最佳输入，以改变ARC的参考值，并从根本上补偿未建模的重复不确定性影响。</li><li>实验证明，效果很好。</li></ul></li></ul><h3 id="4-2-系统动力学模型"><a href="#4-2-系统动力学模型" class="headerlink" title="4.2 系统动力学模型"></a>4.2 系统动力学模型</h3><ul><li>给出磁浮平面电机的机械结构，利用Hal磁场的谐波模型计算动力</li></ul><h3 id="4-3-LARC方法"><a href="#4-3-LARC方法" class="headerlink" title="4.3 LARC方法"></a>4.3 LARC方法</h3><ul><li><p>LARC控制框架是由ARC和ILC组成的串行结构。</p><ul><li>ARC基于系统动态模型，能有效提供参数自适应能力和对不确定干扰的一定鲁棒性。</li><li>ILC通过对跟踪误差等控制信息进行迭代学习，产生最优输入以改变ARC的基准，并有效补偿未建模的重复不确定性的影响、进一步提高跟踪性能。</li></ul></li><li><p>LARC算法框架可以轻易转换为纯粹的ARC控制器、ILC控制器。</p></li><li><p>ARC部分设计</p><ul><li>ARC 本质上结合了传统自适应控制和确定性鲁棒控制的优点，具有出色的参数变化适应能力和对不确定干扰的鲁棒性</li></ul></li><li><p>ILC部分设计</p><ul><li>在没有精确系统模型的情况下，ILC 可以在重复性任务中实现出色的稳定跟踪性能。</li></ul></li><li><p>LARC总概</p><ul><li>给出LARC的算法步骤，伪代码步骤？</li></ul></li></ul><h3 id="4-4-实验研究"><a href="#4-4-实验研究" class="headerlink" title="4.4 实验研究"></a>4.4 实验研究</h3><ul><li>实验设置<ul><li>基础方法声明</li><li>硬件配置</li><li>软件配置</li></ul></li><li>指标声明_两个indicator<ul><li>跟踪误差的最大绝对值eM</li><li>跟踪误差的均方根eRMS</li></ul></li><li>比较实验结果_ARC、ILC、LARC三种方法<ul><li>三种方法在正弦轨迹、定点跟踪、高速圆周下的表现</li></ul></li><li>三组Set<ul><li>测试标称跟踪性能，实验不带有效载荷。</li><li>测试性能对参数变化的鲁棒性，在压盘上安装5.81千克的有效载荷。</li><li>测试对外部干扰的鲁棒性能，在6秒时向控制装置添加-0.2A输入，并在7秒时移除。</li></ul></li></ul><h3 id="4-5-总结"><a href="#4-5-总结" class="headerlink" title="4.5 总结"></a>4.5 总结</h3><ul><li><blockquote><p>LARC控制方案，包括串行结构中的ARC项和迭代学习项。</p></blockquote></li><li><blockquote><p>ARC根据动力学模型设计、能有效地提供鲁棒反馈和自适应模型补偿，从而保证跟踪性能。</p></blockquote></li><li><blockquote><p>ILC可以补偿未建模的不确定性，从而减弱瞬态&#x2F;稳定跟踪误差。</p></blockquote></li><li><blockquote><p>实验也证明LARC方法更好。</p></blockquote></li></ul><h2 id="5-Intelligent-Feedforward-Compensation-Motion-Control-of-Maglev-Planar-Motor-With-Precise-Reference-Modification-Prediction-2021-TIE-Chuxiong-Hu"><a href="#5-Intelligent-Feedforward-Compensation-Motion-Control-of-Maglev-Planar-Motor-With-Precise-Reference-Modification-Prediction-2021-TIE-Chuxiong-Hu" class="headerlink" title="5. Intelligent Feedforward Compensation Motion Control of Maglev Planar Motor With Precise Reference Modification Prediction_2021_TIE_Chuxiong Hu"></a>5. Intelligent Feedforward Compensation Motion Control of Maglev Planar Motor With Precise Reference Modification Prediction_2021_TIE_Chuxiong Hu</h2><ul><li>精确参考修正预测实现磁浮平面电机的智能前馈补偿运动控制</li><li>摘要</li><li>Index Terms<ul><li>Gated recurrent units (GRU) neural network, 门控递归单元</li><li>magnetically levitated (maglev) planar motor, </li><li>motion control, </li><li>reference modification, </li><li>tracking accuracy</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Read </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Read </tag>
+            
+            <tag> Magnetics </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>11月技巧经验汇总</title>
+      <link href="/2023/11/29/ji-qiao-hui-zong/11-yue-ji-qiao-jing-yan-hui-zong/"/>
+      <url>/2023/11/29/ji-qiao-hui-zong/11-yue-ji-qiao-jing-yan-hui-zong/</url>
+      
+        <content type="html"><![CDATA[<h1 id="11月技巧经验汇总"><a href="#11月技巧经验汇总" class="headerlink" title="11月技巧经验汇总"></a>11月技巧经验汇总</h1><ul><li>工具推荐</li></ul><h2 id="1-三个白嫖工具推荐"><a href="#1-三个白嫖工具推荐" class="headerlink" title="1 三个白嫖工具推荐"></a>1 三个白嫖工具推荐</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV11y4y1w7pL/?vd_source=3b79726d0bfe11498e42e05d1b77f109">😨资本家最讨厌的白嫖怪长什么样</a></li></ul><h3 id="1-1-aconvert在线万能格式转换工具"><a href="#1-1-aconvert在线万能格式转换工具" class="headerlink" title="1.1 aconvert在线万能格式转换工具"></a>1.1 aconvert在线万能格式转换工具</h3><ul><li><a href="https://www.aconvert.com/pdf/">aconvert</a></li></ul><h3 id="1-2-Chrome浏览器超级复制插件"><a href="#1-2-Chrome浏览器超级复制插件" class="headerlink" title="1.2 Chrome浏览器超级复制插件"></a>1.2 Chrome浏览器超级复制插件</h3><ul><li>SuperCopy超级复制，能强制复制任何网页的文档内容</li><li>不需要截图</li></ul><h3 id="1-3-！！！图表可视化制作工具！！！"><a href="#1-3-！！！图表可视化制作工具！！！" class="headerlink" title="1.3 ！！！图表可视化制作工具！！！"></a>1.3 ！！！图表可视化制作工具！！！</h3><ul><li><p><a href="https://github.com/apache/echarts">Github下载图表工具</a></p></li><li><p>其他资料</p><ul><li><a href="https://echarts.apache.org/zh/index.html">Echarts官网</a></li><li>需要一点点JS基础</li></ul></li></ul><h2 id="2-12个破除限制网站，99-的人根本不懂！！！-某科君"><a href="#2-12个破除限制网站，99-的人根本不懂！！！-某科君" class="headerlink" title="2 12个破除限制网站，99%的人根本不懂！！！_某科君"></a>2 12个破除限制网站，99%的人根本不懂！！！_某科君</h2><ol><li>Zlibrary：<a href="https://zh.z-library.se/?ts=0403">https://zh.z-library.se/?ts=0403</a> </li><li>奇妙搜索：<a href="https://www.magicalsearch.cc/main">https://www.magicalsearch.cc/main</a> </li><li>Mvcat：<a href="https://www.mvcat.com/">https://www.mvcat.com/</a> </li><li>Clipdrop：<a href="https://clipdrop.co/uncrop">https://clipdrop.co/uncrop</a> </li><li>Runwayml：<a href="https://app.runwayml.com/video-tools/teams/moukejun/dashboard">https://app.runwayml.com/video-tools/teams/moukejun/dashboard</a> </li><li>Spaces：<a href="https://huggingface.co/spaces/zcxu-eric/magicanimate">https://huggingface.co/spaces/zcxu-eric/magicanimate</a> </li><li>AI乌托邦：<a href="https://www.ai-topia.com/#/home">https://www.ai-topia.com/#/home</a> </li><li>免费 ChatGPT: <a href="https://github.com/LiLittleCat/awesome-free-chatgpt">https://github.com/LiLittleCat/awesome-free-chatgpt</a></li><li>轻壁纸：<a href="https://qingbizhi.com/">https://qingbizhi.com/</a>  </li><li>分离音频网站： <a href="https://www.lalal.ai/zh-hans/">https://www.lalal.ai/zh-hans/</a> </li><li>漫画网站：<a href="https://mox.moe/">https://mox.moe/</a> </li><li>论文神器：<a href="https://panda321.com/">https://panda321.com/</a>  </li><li>学习网站：<a href="https://www.xue8nav.com/">https://www.xue8nav.com/</a> </li><li>虫部落：<a href="https://search.chongbuluo.com/">https://search.chongbuluo.com/</a></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> 月汇总 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 月汇总 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>PyTorch深度学习入门小土堆</title>
+      <link href="/2023/11/20/pytorch-shen-du-xue-xi/xiao-tu-dui-ru-men-pytorch/"/>
+      <url>/2023/11/20/pytorch-shen-du-xue-xi/xiao-tu-dui-ru-men-pytorch/</url>
+      
+        <content type="html"><![CDATA[<h1 id="PyTorch深度学习入门"><a href="#PyTorch深度学习入门" class="headerlink" title="PyTorch深度学习入门"></a>PyTorch深度学习入门</h1><p>参考资料:</p><ul><li><a href="https://www.bilibili.com/video/BV1hE411t7RN/?spm_id_from=333.1007.top_right_bar_window_history.content.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">小土堆PyTorch视频讲解</a></li></ul><h2 id="1-环境配置"><a href="#1-环境配置" class="headerlink" title="1 环境配置"></a>1 环境配置</h2><h3 id="1-1-安装Anaconda和PyTorch"><a href="#1-1-安装Anaconda和PyTorch" class="headerlink" title="1.1 安装Anaconda和PyTorch"></a>1.1 安装Anaconda和PyTorch</h3><ul><li>跟着步骤走</li><li>Anaconda环境能提供版本切换</li></ul><h3 id="1-2-编译器安装Pycharm"><a href="#1-2-编译器安装Pycharm" class="headerlink" title="1.2 编译器安装Pycharm"></a>1.2 编译器安装Pycharm</h3><ul><li>安装Pycharm</li><li>创建项目时，添加Conda环境的PyTorch</li></ul><h2 id="2-Py"><a href="#2-Py" class="headerlink" title="2 Py"></a>2 Py</h2><h3 id="2-1-Python学习的两个函数"><a href="#2-1-Python学习的两个函数" class="headerlink" title="2.1 Python学习的两个函数"></a>2.1 Python学习的两个函数</h3><ul><li>dir()和help()<ul><li>dir()获取工具箱以及工具箱间隔区有啥</li><li>help()获取工具使用方法</li></ul></li><li><pre><code>dir(torch.cuda) //查看cuda中的各种函数dir(torch.cuda.is_available) //查看is_available函数中的参数help(torch.cuda.is_available) //查看is_available函数的使用功能</code></pre></li></ul><h3 id="2-2-PyCharm使用"><a href="#2-2-PyCharm使用" class="headerlink" title="2.2 PyCharm使用"></a>2.2 PyCharm使用</h3><ul><li>运行py文件，需要设置Python解释器,添加Configurations<ul><li>添加Python，脚本路径，选中py文件，再执行</li></ul></li><li>右键run</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> PyTorch </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> PyTorch </tag>
+            
+            <tag> 深度学习 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Qt大丙老师</title>
+      <link href="/2023/11/18/qt/qt-da-bing-ru-men/"/>
+      <url>/2023/11/18/qt/qt-da-bing-ru-men/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Qt大丙老师教学"><a href="#Qt大丙老师教学" class="headerlink" title="Qt大丙老师教学"></a>Qt大丙老师教学</h1><p>参考资料:</p><ul><li><a href="https://subingwen.cn/qt/qt-primer/">大丙老师博客QT</a></li><li><a href="https://www.bilibili.com/video/BV1Jp4y167R9/?spm_id_from=333.337.search-card.all.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">大丙视频讲解</a></li></ul><h2 id="1-Qt基础"><a href="#1-Qt基础" class="headerlink" title="1 Qt基础"></a>1 Qt基础</h2><h3 id="1-1-Qt入门"><a href="#1-1-Qt入门" class="headerlink" title="1.1 Qt入门"></a>1.1 Qt入门</h3><h4 id="1-1-1-项目创建"><a href="#1-1-1-项目创建" class="headerlink" title="1.1.1 项目创建"></a>1.1.1 项目创建</h4><blockquote><p>.cpp和.h和.ui三个文件中，实际上存在两种同名MainWindow类，在.h中用利用UI::MainWindow类的指针，将两同名类实例进行捆绑联通起来</p></blockquote><h4 id="1-1-2-窗口类"><a href="#1-1-2-窗口类" class="headerlink" title="1.1.2 窗口类"></a>1.1.2 窗口类</h4><ol><li>共有三种窗口类<ul><li>QWidget<ul><li>所有窗口类的基类</li><li>既可以单独显示，有边框，需要手动显示；也可以内嵌到其他窗口内部，此时无边框，即指定父窗口，跟随父窗口自动显示</li></ul></li><li>QDialog<ul><li>QWidget的派生类</li><li>只能单独显示，不可内嵌，分模态和非模态两种显示</li><li>.exec()&#x2F;&#x2F;模态显示，将阻塞程序执行</li></ul></li><li>QMainWindow<ul><li>QWidget的派生类</li><li>包含菜单栏，工具栏，状态栏，不可内嵌</li><li>若菜单栏，工具栏，状态栏没了，选择MainWindow添加<ul><li>注意，菜单栏和状态栏只能有一个，工具栏可以多个</li></ul></li></ul></li></ul></li><li>内存自动回收机制<ul><li>创建的类对象，必须指定其父对象是谁<ul><li>构造函数时指定</li><li>调用setParent()指定</li></ul></li></ul></li></ol><h3 id="1-2-基础数据类型"><a href="#1-2-基础数据类型" class="headerlink" title="1.2 基础数据类型"></a>1.2 基础数据类型</h3><h4 id="1-2-1-基础数据类型"><a href="#1-2-1-基础数据类型" class="headerlink" title="1.2.1 基础数据类型"></a>1.2.1 基础数据类型</h4><h4 id="1-2-2-日志输出"><a href="#1-2-2-日志输出" class="headerlink" title="1.2.2 日志输出"></a>1.2.2 日志输出</h4><ul><li>qDebug()</li><li>.pro编辑添加console，重新构建，这样.exe也能看到控制台输出<ul><li><blockquote><p>CONFIG +&#x3D; c++11 console</p></blockquote></li></ul></li></ul><h4 id="1-2-3-字符串QByteArray与QString"><a href="#1-2-3-字符串QByteArray与QString" class="headerlink" title="1.2.3 字符串QByteArray与QString"></a>1.2.3 字符串QByteArray与QString</h4><ul><li>数据操作<ul><li>尾部添加，头部添加，中间插入，删除数据，字符串替换</li></ul></li><li>查找与判断<ul><li>判断包含子串，startsWith,endsWith</li></ul></li><li>长度<ul><li>length(),size(),count()</li></ul></li><li>类型转换</li><li>ByteArray与String区别<ul><li>模糊匹配？</li></ul></li></ul><h4 id="1-2-4-QVariant-模板"><a href="#1-2-4-QVariant-模板" class="headerlink" title="1.2.4 QVariant(模板)"></a>1.2.4 QVariant(模板)</h4><ul><li>万能，神奇，方便，包含所有类型的转换与逆转</li><li>构造QVariant<ul><li>空对象QVariant()并对该对象进行setValue</li><li>静态方法fromValue(value)</li><li>带参构造</li></ul></li><li>type(),toType()</li><li>结合枚举法实现模板Template的使用</li><li>自定义类需要配合canConvert转换value()</li></ul><h4 id="1-2-5-坐标类"><a href="#1-2-5-坐标类" class="headerlink" title="1.2.5 坐标类"></a>1.2.5 坐标类</h4><ul><li>QPoint<ul><li>构造</li><li>setXY()</li><li>x()，y()，得到x的拷贝</li><li>rx()得到x的引用</li></ul></li><li>QLine<ul><li>构造<ul><li>QLine(x1,y1,x2,y2)</li><li>QLine(Point p1, Point p2)</li></ul></li><li>设置直线<ul><li>设置两坐标点</li><li>设置起始坐标，终止，setP1(),setP2()</li></ul></li><li>返回<ul><li>返回起始点，终止点，中心点</li><li>返回起终点的x&#x2F;y坐标</li></ul></li><li>平移<ul><li>translate()</li></ul></li></ul></li><li>QSize<ul><li>形容长度和宽度</li><li>setWidth&#x2F;Height</li><li>width&#x2F;rwidth()</li><li>交换长，宽transpose</li></ul></li><li>QRect<ul><li>结合点和尺寸</li><li>构造<ul><li>基于两点构造</li><li>基于左上点和长宽</li><li>基于左上点和尺寸</li></ul></li><li>返回<ul><li>topLR,bottomLR</li><li>center</li><li>top(),y()返回轴坐标</li></ul></li></ul></li></ul><h4 id="1-2-6-日期类"><a href="#1-2-6-日期类" class="headerlink" title="1.2.6 日期类"></a>1.2.6 日期类</h4><ul><li>QDate<ul><li>构造(y,m,d)</li><li>修改<ul><li>setDate</li><li>addDays</li><li>addMouths</li></ul></li><li>返回<ul><li>year,month,day()</li><li>getDate</li></ul></li><li>格式化<ul><li>toString(format)</li><li>d&#x2F;dd&#x2F;ddd&#x2F;dddd</li><li>M&#x2F;MM&#x2F;MMM&#x2F;MMMM</li><li>yy&#x2F;yyyy</li><li>yyyy-MM-dd</li></ul></li><li>静态方法<ul><li>currentDate()</li></ul></li></ul></li><li>QTime<ul><li>最小单位-毫秒 h&#x2F;m&#x2F;s&#x2F;ms</li><li>修改<ul><li>setHMS</li><li>addSecs(2*60*60+5)</li><li>addMSecs</li></ul></li><li>格式化<ul><li>toString</li><li>h&#x2F;H&#x2F;m&#x2F;mm&#x2F;s&#x2F;ss&#x2F;zzz&#x2F;AP&#x2F;A&#x2F;ap&#x2F;a</li></ul></li><li>静态方法<ul><li>currentTime()</li></ul></li><li>⏲计时应用<ul><li>过时的QTime<ul><li>start&#x2F;elapsed&#x2F;restart</li></ul></li><li><strong>推荐使用QElapsedTimer</strong><ul><li>start()</li><li>restart()</li><li>elapsed()</li></ul></li></ul></li></ul></li><li>QDateTime<ul><li>结合Date和Time</li><li>静态方法<ul><li>currentDateTime</li></ul></li></ul></li></ul><h3 id="1-3-信号与槽"><a href="#1-3-信号与槽" class="headerlink" title="1.3 信号与槽"></a>1.3 信号与槽</h3><h4 id="1-3-1-信号槽的本质"><a href="#1-3-1-信号槽的本质" class="headerlink" title="1.3.1 信号槽的本质"></a>1.3.1 信号槽的本质</h4><ul><li>信号的本质就是事件<ul><li>点击，双击</li><li>窗口刷新</li><li>鼠标移动，按下，释放</li><li>键盘输入</li></ul></li><li>槽的本质<ul><li>功能函数</li><li>可作为普通函数使用</li></ul></li><li>信号与槽连接<ul><li>QObject类的connect()</li><li>connect(sender,signal,receiver,method)</li></ul></li></ul><h4 id="1-3-2-标准信号槽"><a href="#1-3-2-标准信号槽" class="headerlink" title="1.3.2 标准信号槽"></a>1.3.2 标准信号槽</h4><ul><li>Signals 与 Public Slots</li><li>Signals<ul><li>clicked</li><li>pressed&#x2F;released 按压与释放</li><li>toggled 按住不松</li></ul></li><li>Slots<ul><li>close()</li><li>hide()</li><li>lower()</li><li>raise()</li><li>repaint()</li></ul></li><li>e.g.<ul><li><blockquote><p>connect(ui-&gt;close_btn,&amp;QPushButton::clicked,this,&amp;MainWindow::close);</p></blockquote></li></ul></li></ul><h4 id="1-3-3-自定义信号槽规则"><a href="#1-3-3-自定义信号槽规则" class="headerlink" title="1.3.3 自定义信号槽规则"></a>1.3.3 自定义信号槽规则</h4><ul><li><p>建议应用于自定的类</p></li><li><p>利用已有类派生后，再拓展信号与槽</p></li><li><p>注意！！👇</p><ul><li>该类必须从QObject或其子类派生而来</li><li>定义类的头文件中加入 <strong>Q_OBJECT</strong> 宏</li><li>demo<pre class="line-numbers language-none"><code class="language-none">class MyMainWindow:public QWidget&#123;  Q_OBJECT  &#x2F;&#x2F;这个宏必须加，否则无法使用信号槽  ...&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li><p>自定义信号</p><ul><li>信号是类的成员函数</li><li>返回值必须是void类型</li><li>使用signals关键字声明</li><li>信号函数只需要声明，不需要定义</li><li>发送自定义信号-本质是调用信号函数<ul><li>emit提示自定义信号使用</li></ul></li></ul></li><li><p>自定义槽函数</p><ul><li>返回值必须是void类型</li><li>槽的参数与信号参数要对应，等于或小于信号参数个数<ul><li>void testsig(int a , double b)</li><li>void testslot(int a , double b)</li></ul></li><li>槽函数不同类型<ul><li>类的成员函数</li><li>全局函数</li><li>静态函数</li><li>lambda表达式</li></ul></li><li>slots关键字声明</li></ul></li></ul><h4 id="1-3-4-自定义槽函数的应用"><a href="#1-3-4-自定义槽函数的应用" class="headerlink" title="1.3.4 自定义槽函数的应用"></a>1.3.4 自定义槽函数的应用</h4><ul><li>自定义信号signals<ul><li><strong>不需要定义，只用声明</strong></li></ul></li><li>自定槽slots参数<ul><li>不大于信号内参数</li></ul></li><li>信号关联的前提<ul><li>sender和receiver要在同一个空间</li><li><strong>实操经验</strong></li><li>对于两个自定义类，添加到mainwindow.h中并指针引用(私有)对象</li></ul></li><li>案例代码  <pre class="line-numbers language-none"><code class="language-none">m_me&#x3D;new Me;connect(m_girl,&amp;GirlFriend::hungry,m_me,&amp;Me::eat);connect(ui-&gt;hungry_btn,&amp;QPushButton::clicked,this,&amp;MainWindow::hungrySlot);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li></ul><h4 id="1-3-5-信号槽拓展理解"><a href="#1-3-5-信号槽拓展理解" class="headerlink" title="1.3.5 信号槽拓展理解"></a>1.3.5 信号槽拓展理解</h4><ul><li>一个信号可以连接多个槽函数<ul><li>多个connect连接</li><li>执行顺序随机</li></ul></li><li>多个不同信号连接一个槽函数，处理动作相同</li><li>信号发出后，receiver可以选择再发出另一新的信号，实现数据传递，而不处理</li><li>断开信号槽_disconnect()</li></ul><h4 id="1-3-6-Qt4-x2F-Qt5信号槽区别"><a href="#1-3-6-Qt4-x2F-Qt5信号槽区别" class="headerlink" title="1.3.6 Qt4&#x2F;Qt5信号槽区别"></a>1.3.6 Qt4&#x2F;Qt5信号槽区别</h4><ul><li>Qt4<ul><li>SIGNAL()与SLOT()</li></ul></li><li>当出现信号函数或槽函数重载时<ul><li>Qt4更方便直接</li><li>Qt5需要利用函数指针地址定位操作</li></ul></li><li>严格来说还是不推荐Qt4<ul><li>因Qt4不会提供细节的报错提示</li></ul></li></ul><h4 id="1-3-7-lambda"><a href="#1-3-7-lambda" class="headerlink" title="1.3.7 lambda"></a>1.3.7 lambda</h4><ul><li>匿名函数</li><li>语法结构<ul><li>[ ]( ){body;}</li><li>完整形态：[ ]( ) opt -&gt; ret {body;}</li><li>[捕获列表](参数列表){函数主体}</li></ul></li><li>捕获列表<ul><li>[] 不捕获任何变量</li><li>[&amp;] 引用捕获</li><li>[&#x3D;] 拷贝捕获，使用变量的副本，且该副本在body中只读</li><li>[&#x3D;,&amp;foo] 仅foo变量是引用传递，其余变量拷贝</li><li>[bar] 或[&amp;bar] 点名只捕获bar变量，不捕获其余变量</li><li>[&#x3D;]配合<strong>mutable</strong>关键字使用，可以修改内部只读变量的属性</li></ul></li><li>参数列表<ul><li>代码参考<pre class="line-numbers language-none"><code class="language-none">int a&#x3D;100,b&#x3D;200,c&#x3D;300;&#x2F;&#x2F;lambda匿名函数调用[&amp;]()&#123;   qDebug()&lt;&lt;&quot;Hello,I&#39;m lambda...&quot; ;   qDebug()&lt;&lt;&quot;使用引用方式传递数据&quot; ;   qDebug()&lt;&lt;&quot;a+1:&quot;&lt;&lt;a++&lt;&lt;&quot;b+c: &quot;&lt;&lt;b+c;&#125;();qDebug()&lt;&lt;&quot;a:&quot;&lt;&lt;a&lt;&lt;&quot;b+c: &quot;&lt;&lt;b+c;[&#x3D;](int m,int n)mutable&#123;   qDebug()&lt;&lt;&quot;Hello,I&#39;m lambda...&quot; ;   qDebug()&lt;&lt;&quot;使用引用方式传递数据&quot; ;   qDebug()&lt;&lt;&quot;a+1:&quot;&lt;&lt;a++&lt;&lt;&quot;b+c: &quot;&lt;&lt;b+c;   qDebug()&lt;&lt;&quot;m+1:&quot;&lt;&lt;++m&lt;&lt;&quot;n: &quot;&lt;&lt;n;&#125;(1,2);qDebug()&lt;&lt;&quot;a:&quot;&lt;&lt;a&lt;&lt;&quot;b+c: &quot;&lt;&lt;b+c;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li>可选项常用的<ul><li>mutable</li><li>exception-异常抛出处理throw</li></ul></li></ul><h3 id="1-4-QTimer类应用"><a href="#1-4-QTimer类应用" class="headerlink" title="1.4 QTimer类应用"></a>1.4 QTimer类应用</h3><ul><li>构造<ul><li>start(),需要手动设置时间间隔,setInterval</li><li>start(int msec) 设置时间间隔</li></ul></li><li>设置定时器精度<ul><li>setTimerType</li><li>参数类型_PreciseTimer&#x2F;CoarseTimer&#x2F;VeryCoarseTimer</li></ul></li><li>触发判断<ul><li>isActive</li><li>默认周期性触发，设置只触发一次_<strong>setSingleShot</strong>与isSingleShot</li></ul></li><li><strong>QTimer的静态方法很方便</strong><ul><li>QTimer::singleShot()</li></ul></li><li>示例代码<pre class="line-numbers language-none"><code class="language-none">QTimer* timer&#x3D;new QTimer(this);timer-&gt;setTimerType(Qt::VeryCoarseTimer);connect(timer,&amp;QTimer::timeout,this,[&#x3D;]()&#123;      QTime tm&#x3D;QTime::currentTime();      ui-&gt;cur_time-&gt;setText(tm.toString(&quot;hh:mm:ss.zzz&quot;));  &#125;);connect(ui-&gt;once_btn,&amp;QPushButton::clicked,this,[&#x3D;]()&#123;      &#x2F;&#x2F;获取两秒之后的系统时间      QTimer::singleShot(2000,this,[&#x3D;]()&#123;          QTime tm&#x3D;QTime::currentTime();          ui-&gt;once_time-&gt;setText(tm.toString(&quot;hh:mm:ss.zzz&quot;));      &#125;);  &#125;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+            <tag> GUI </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>论文格式修改方法</title>
+      <link href="/2023/11/06/word-lun-wen-ge-shi-xiu-gai/"/>
+      <url>/2023/11/06/word-lun-wen-ge-shi-xiu-gai/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Word论文格式修改方法"><a href="#Word论文格式修改方法" class="headerlink" title="Word论文格式修改方法"></a>Word论文格式修改方法</h1><p>参考资料:</p><ul><li><a href="https://www.bilibili.com/video/BV1FV4y157kx/?spm_id_from=333.337.search-card.all.click">标题多级列表设置</a></li></ul><h2 id="1-标题多级列表"><a href="#1-标题多级列表" class="headerlink" title="1 标题多级列表"></a>1 标题多级列表</h2><h3 id="1-1-多级列表链接标题样式"><a href="#1-1-多级列表链接标题样式" class="headerlink" title="1.1 多级列表链接标题样式"></a>1.1 多级列表链接标题样式</h3><ul><li>设置多级列表，打开更多，链接到标题样式</li><li>设置所有级别的文本位置，推荐全为0厘米</li><li>修改编号之后为空格</li><li>第2级之后，若第一章的1.1，打勾正规形式编号，之后依次链接样式</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 论文样式 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 论文样式 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Qt+Matlab混合编程</title>
+      <link href="/2023/11/03/qt/qt-matlab-lian-he/"/>
+      <url>/2023/11/03/qt/qt-matlab-lian-he/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Qt-Matlab混合编程"><a href="#Qt-Matlab混合编程" class="headerlink" title="Qt+Matlab混合编程"></a>Qt+Matlab混合编程</h1><p>参考资料:</p><ul><li><a href="https://blog.csdn.net/m15279530607_163/article/details/129471386">Qt平台实现C&#x2F;C++调用Matlab函数</a></li><li><a href="https://blog.csdn.net/u010058695/article/details/121682716">Qt 调用MATLAB引擎混合编程</a></li></ul><h2 id="1-前言"><a href="#1-前言" class="headerlink" title="1 前言"></a>1 前言</h2><h3 id="1-1-C-x2F-C-调用Matlab的三种方式"><a href="#1-1-C-x2F-C-调用Matlab的三种方式" class="headerlink" title="1.1 C&#x2F;C++调用Matlab的三种方式"></a>1.1 C&#x2F;C++调用Matlab的三种方式</h3><ul><li>利用MATLAB Coder将MATLAB代码转为C&#x2F;C++代码和动态链接库</li><li>将MATLAB代码编译成exe文件，由C&#x2F;C++调用exe实现混合调用，需要安装MCR环境，MATLAB Component Runtime，MCR</li><li>直接调用MATLAB计算引擎，相当于进程调用，后台开一个MATLAB应用，通过C API传参和接收MATLAB的返回结果</li></ul><h2 id="2-操作"><a href="#2-操作" class="headerlink" title="2 操作"></a>2 操作</h2><h3 id="2-1-MATLAB配置C编译器"><a href="#2-1-MATLAB配置C编译器" class="headerlink" title="2.1 MATLAB配置C编译器"></a>2.1 MATLAB配置C编译器</h3><ul><li><p>配置MATLAB的C编译器与Qt的C编译器为同一个MinGW</p><pre class="line-numbers language-none"><code class="language-none">setenv(&#39;MW_MINGW64_LOC&#39;,&#39;C:\Qt\Qt5.14.2\Tools\mingw730_64&#39;)该方法是临时设置MinGW环境变量也可以在系统环境变量中设置好，一劳永逸Matlab中选择MinGW64 C++mex -setup<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li><p>Qt配置Matlab Engine环境</p><ul><li>Qt.Pro中添加Engine依赖项<ul><li>注意当MATLAB安装目录有空格时</li><li>去空格<pre class="line-numbers language-none"><code class="language-none">INCLUDEPATH +&#x3D; $$quote(C:\Program Files\MATLAB\R2018b\extern\include)LIBS +&#x3D; $$quote(C:\Program Files\MATLAB\R2018b\extern\lib\win64\mingw64\lib*.lib)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li></ul></li><li>测试代码<pre class="line-numbers language-none"><code class="language-none">#include&lt;engine.h&gt;#include&lt;QDebug&gt;Engine* mat;const char* commandchar;if(!(mat&#x3D;engOpen(NULL)))&#123;  qDebug()&lt;&lt;&quot;Cannot start MATLAB engine!&quot;;&#125;commandchar&#x3D;&quot;t&#x3D;0:0.01:4*pi;y&#x3D;sin(t);h&#x3D;plot(t,y)&quot;;engEvalString(mat,commandchar);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li><p>若有其他问题，看下面帖</p><ul><li><a href="https://blog.csdn.net/u010058695/article/details/121682716">Qt 调用MATLAB引擎混合编程</a></li><li><a href="https://ww2.mathworks.cn/help/matlab/calling-matlab-engine-from-c-programs-1.html">C调用MATLAB官方</a></li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Matlab </tag>
+            
+            <tag> Qt </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Qt+OpenCV环境搭建</title>
+      <link href="/2023/11/01/qt/qt-opencv-ji-qi-shi-jue-kai-fa/"/>
+      <url>/2023/11/01/qt/qt-opencv-ji-qi-shi-jue-kai-fa/</url>
+      
+        <content type="html"><![CDATA[<h1 id="QtOpenCV环境搭建及开发应用"><a href="#QtOpenCV环境搭建及开发应用" class="headerlink" title="QtOpenCV环境搭建及开发应用"></a>QtOpenCV环境搭建及开发应用</h1><p>参考资料:</p><ul><li><a href="https://www.bilibili.com/video/BV1Gm4y147iE?p=1&vd_source=3b79726d0bfe11498e42e05d1b77f109">QT+OpenCV环境搭建</a></li></ul><h2 id="1-痛苦的环境搭建"><a href="#1-痛苦的环境搭建" class="headerlink" title="1 痛苦的环境搭建"></a>1 痛苦的环境搭建</h2><h3 id="1-1-安装软件"><a href="#1-1-安装软件" class="headerlink" title="1.1 安装软件"></a>1.1 安装软件</h3><ul><li>安装包链接<ul><li><a href="https://pan.baidu.com/s/1OHnrUolHfEUdseNVqrDAnQ">链接</a> 提取码：whu6</li></ul></li><li>注意，所有安装，禁止有中文及空格！！！</li><li>安装CMake<ul><li>安装之后，注意环境变量Path添加C:\QtCvInstall\cmake\bin</li></ul></li><li>OpenCV解压<ul><li>解压后，环境变量Path添加C:\QtCvInstall\opencv\opencv\build\x64\vc15\bin</li></ul></li><li>Qt5安装<ul><li>不解释，看Qt入门中的安装</li></ul></li></ul><h3 id="1-2-CMake工具生成Makefile文件"><a href="#1-2-CMake工具生成Makefile文件" class="headerlink" title="1.2 CMake工具生成Makefile文件"></a>1.2 CMake工具生成Makefile文件</h3><ul><li>opencv文件夹下，新建opencv_build，用于存放后续的文件</li><li>具体操作可参考,注意部分细节有误<ul><li><a href="https://blog.csdn.net/weixin_43763292/article/details/112975207">Qt配置OpenCV教程</a></li><li>初次Configure后，如何解决错误？<ul><li>WITH_OPENGL 勾上</li><li>ENABLE_CXX11 勾上</li><li>WITH_IPP 不能勾选</li><li>ENABLE_PRECOMPILED_HEADERS 不能勾选</li><li>然后configure</li></ul></li><li>此时没有红色，但有错误<ul><li>WITH_QT 勾上</li><li>configure后有红色报错</li><li>直接再次Configure</li><li>此时发现还有问题存在<ul><li>因为文件下载缺失故报错，这是最关键的错误！</li><li>C:\QtCvInstall\opencv\opencv\sources\.cache\ffmpeg</li><li>从安装包中,将.cmake,.dll文件对应替换到上面的文件夹中</li><li>注意文件名不可更改，保持原文件中对应命名不变</li></ul></li></ul></li><li>再次Configure，发现全无错误，随后generate<ul><li>opencv_build文件夹中有Makefile文件，说明成功</li></ul></li></ul></li><li>关闭Cmake工具，进入opencv_build文件夹，打开cmd窗口<ul><li>mingw32-make -j 8</li><li>中途报错终止<ul><li>3d渲染报错，再次进入Cmake</li><li>WITH_OPENGL_D3D11_NV 取消勾选，重新Configure一下</li></ul></li><li>返回cmd窗口，再次mingw32-make -j 8</li><li>等待进度完成，至此，最艰难最痛苦的环境搭建结束</li></ul></li></ul><h3 id="1-3-Opencv库集成到Qt"><a href="#1-3-Opencv库集成到Qt" class="headerlink" title="1.3 Opencv库集成到Qt"></a>1.3 Opencv库集成到Qt</h3><ul><li>Qt中.pro文件下添加<pre class="line-numbers language-none"><code class="language-none">## 包含路径INCLUDEPATH +&#x3D; C:\QtCvInstall\opencv\opencv\opencv_build\install\include## 库文件LIBS +&#x3D; C:\QtCvInstall\opencv\opencv\opencv_build\lib\libopencv_*.a<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>注意上述的install文件夹需要，手动install才能生成<ul><li>进入opencv_build文件夹下cmd</li><li>指令mingw32-make install</li><li>安装结束后有 opencv_build\install\include</li></ul></li></ul><h2 id="2-打包程序"><a href="#2-打包程序" class="headerlink" title="2 打包程序"></a>2 打包程序</h2><h3 id="2-1-相关资料"><a href="#2-1-相关资料" class="headerlink" title="2.1 相关资料"></a>2.1 相关资料</h3><ul><li><a href="https://blog.csdn.net/childbor/article/details/125283893">Qt打包为exe，以此为主</a></li><li><a href="https://www.cnblogs.com/linuxAndMcu/p/10974927.html">Qt程序发布</a></li></ul><h3 id="2-2-细节注意"><a href="#2-2-细节注意" class="headerlink" title="2.2 细节注意"></a>2.2 细节注意</h3><ul><li>因为用户电脑上没有 Qt 配置环境，所以需要将 release 生成的 exe 文件和所依赖的 dll 文件复制到一个文件夹中</li><li>需将文件夹中的dll全部复制到最终文件夹\qtout中<ul><li>C:\QtCvInstall\opencv\opencv\opencv_build\lib</li></ul></li></ul><h3 id="2-3-操作步骤"><a href="#2-3-操作步骤" class="headerlink" title="2.3 操作步骤"></a>2.3 操作步骤</h3><ul><li>将Qt Release产生的exe程序复制到同盘符的文件夹中,例如C:\qtout</li><li>找到Qt目录下的Qt 5.14.2(MinGW 7.3.0 64-bit)<ul><li>cmd中 执行 cd \qtout</li><li>再输入命令 windeployqt 项目名.exe</li><li>如windeployqt QTCVProj_1.exe</li></ul></li><li>添加额外的dll文件！</li></ul><h3 id="2-4-打包程序最终步骤"><a href="#2-4-打包程序最终步骤" class="headerlink" title="2.4 打包程序最终步骤"></a>2.4 打包程序最终步骤</h3><ul><li>安装Enigma virtual box软件</li><li>完成2.3中步骤之后，参考资料<ul><li><a href="https://blog.csdn.net/m0_58844968/article/details/124307449?spm=1001.2014.3001.5506">打包为一个单独可执行.exe文件流程</a></li></ul></li></ul><h2 id="3-Qt使用经验"><a href="#3-Qt使用经验" class="headerlink" title="3 Qt使用经验"></a>3 Qt使用经验</h2><h3 id="3-1-Qt事件之鼠标学习资料"><a href="#3-1-Qt事件之鼠标学习资料" class="headerlink" title="3.1 Qt事件之鼠标学习资料"></a>3.1 Qt事件之鼠标学习资料</h3><ul><li><a href="https://blog.csdn.net/Dasis/article/details/121496561">看这一篇_鼠标事件(控件与事件连接)</a></li></ul><h3 id="3-2-打开文件解决中文路径识别方法"><a href="#3-2-打开文件解决中文路径识别方法" class="headerlink" title="3.2 打开文件解决中文路径识别方法"></a>3.2 打开文件解决中文路径识别方法</h3><ul><li><a href="https://blog.csdn.net/m0_37906001/article/details/76672634">QT中打开本地文件不能识别中文路径</a></li><li><pre><code>QTextCodec *code = QTextCodec::codecForName(&quot;GB2312&quot;);//解决中文路径问题std::string name = code-&gt;fromUnicode(fileName).data();<pre class="line-numbers language-none"><code class="language-none">### 3.3 QT获取Label中的图片内容并保存图片- 参考  - [qt5获取label标签内的图片内容](https:&#x2F;&#x2F;wenku.csdn.net&#x2F;answer&#x2F;90dc1d80134211eea6c2fa163eeb3507#)  - [QImage保存图像到本地](https:&#x2F;&#x2F;blog.csdn.net&#x2F;hml111666&#x2F;article&#x2F;details&#x2F;122500834?)- &#96;&#96;&#96;  QImage image&#x3D;ui-&gt;lab_show2-&gt;pixmap()-&gt;toImage(); &#x2F;&#x2F;获取label的pixmap转为QImage  image.save(QString(&quot;.&#x2F;img_out&#x2F;save_img%1.png&quot;).arg(saveimg_index),&quot;PNG&quot;,100); &#x2F;&#x2F;保存图片<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></code></pre></li></ul><h3 id="3-4-串口通信相关"><a href="#3-4-串口通信相关" class="headerlink" title="3.4 串口通信相关"></a>3.4 串口通信相关</h3><ul><li>参考<ul><li><a href="https://blog.csdn.net/weixin_42837024/article/details/81669540">Qt 串口通信(QSerialPort)</a></li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+            <tag> opencv </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>技术标准写作方法</title>
+      <link href="/2023/10/25/2023.8-10/ji-zhu-biao-zhun-xie-zuo/"/>
+      <url>/2023/10/25/2023.8-10/ji-zhu-biao-zhun-xie-zuo/</url>
+      
+        <content type="html"><![CDATA[<h1 id="技术标准写作-磁浮平面电机仿真测试"><a href="#技术标准写作-磁浮平面电机仿真测试" class="headerlink" title="技术标准写作-磁浮平面电机仿真测试"></a>技术标准写作-磁浮平面电机仿真测试</h1><h2 id="如何查询标准并下载"><a href="#如何查询标准并下载" class="headerlink" title="如何查询标准并下载"></a>如何查询标准并下载</h2><ul><li><a href="https://www.bilibili.com/video/BV1er4y1C7BY/?spm_id_from=333.337.search-card.all.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">国家标准&#x2F;行业标准查询及下载方法</a></li><li>搜索网站<ul><li><a href="https://www.biaozhun.org/">标准网(现下载有限制)</a></li><li><a href="https://openstd.samr.gov.cn/bzgk/gb/index">国家标准全文公开系统(下载需要开发者模式操作)</a></li><li><a href="https://dljs.mystuff.com.cn/">电力建设工程标准数据库</a></li><li><a href="http://www.bzko.com/">标准库</a></li><li><a href="http://www.bzmfxz.com/">标准免费下载网</a></li><li><a href="http://www.biaozhun8.cn/">国家标准网</a></li><li><a href="http://www.bzfxw.com/">学兔兔</a></li><li><a href="http://www.bzxzk.net/">标准？</a></li></ul></li></ul><h2 id="国家标准网仿真相关资料"><a href="#国家标准网仿真相关资料" class="headerlink" title="国家标准网仿真相关资料"></a>国家标准网仿真相关资料</h2><ul><li><a href="http://c.gb688.cn/bzgk/gb/showGb?type=online&hcno=7A0E35A1DFAEE24D07F1A1098E753556">机械产品三维建模规则通用要求</a></li><li><a href="http://c.gb688.cn/bzgk/gb/showGb?type=online&hcno=2E75FF22AF89AEE2029FED00BC2A2835">机械产品结构有限元力学分析规则</a></li><li><a href="http://c.gb688.cn/bzgk/gb/showGb?type=online&hcno=F975902F125C9C5673265F8D2EB4EB5E">机械产品制造过程数字化仿真通用要求</a><ul><li><a href="http://c.gb688.cn/bzgk/gb/showGb?type=online&hcno=916468DDE3F280A25574CD84DD5A21C6">数控加工过程仿真要求</a></li></ul></li><li><a href="http://c.gb688.cn/bzgk/gb/showGb?type=online&hcno=8F5EFA0AC4A8808818EC931676A11B1D">高压直流输电系统机电暂态仿真建模技术指导</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 标准 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 标准 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Qt快速上手</title>
+      <link href="/2023/10/11/qt/qt-di-yi-ci-ru-men/"/>
+      <url>/2023/10/11/qt/qt-di-yi-ci-ru-men/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Qt-UI开发"><a href="#Qt-UI开发" class="headerlink" title="Qt UI开发"></a>Qt UI开发</h1><p>参考资料:</p><ul><li><a href="https://mp.weixin.qq.com/s/fanaGfGp-M9O1tjSz-LyYw">QT安装教程</a></li><li><a href="https://www.bilibili.com/video/BV1PT411w7dx/?spm_id_from=333.337.search-card.all.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">60分钟Qt快速入门</a></li><li><a href="https://blog.csdn.net/Kajima_/article/details/87859569">Qt自定义添加注释方法</a></li><li><a href="https://www.bilibili.com/video/BV1r54y1G7m4?p=9&vd_source=3b79726d0bfe11498e42e05d1b77f109">常用快捷键</a></li><li><a href="https://mp.weixin.qq.com/s?__biz=MzIzNjgxNjA3MQ==&mid=2247488498&idx=1&sn=51572798f9c0e280b3eed60413411762&chksm=e8d3405adfa4c94c24c79bb9cb73695056f062d1bde6576f3780ecf27e81ceec7a5faee37ced&cur_album_id=1676309317479661569&scene=190#rd">VS配置QT</a></li></ul><h2 id="1-最简单的Qt-Widgets应用"><a href="#1-最简单的Qt-Widgets应用" class="headerlink" title="1 最简单的Qt Widgets应用"></a>1 最简单的Qt Widgets应用</h2><h3 id="1-1-创建项目"><a href="#1-1-创建项目" class="headerlink" title="1.1 创建项目"></a>1.1 创建项目</h3><ul><li>Location:设置项目路径和名称(不要有中文和空格)</li><li>Build system:选择默认的qmake</li><li>类信息:基类选择QWidget,并取消勾选UI界面生成</li><li>Kits:(Attention)选择MinGW64,若选择MSVC,可能会出现配置出错<ul><li>出错后,在项目选项卡中进行修改</li></ul></li></ul><h3 id="1-2-默认项目的修改"><a href="#1-2-默认项目的修改" class="headerlink" title="1.2 默认项目的修改"></a>1.2 默认项目的修改</h3><ul><li>Widget.cpp类中,使用this指针修改属性<pre class="line-numbers language-none"><code class="language-none">#include &quot;widget.h&quot;&#x2F;&#x2F;&lt;&gt;一般用于系统头文件，&quot;&quot;用于自定义.h#include&quot;QIcon&quot;Widget::Widget(QWidget *parent)    : QWidget(parent)&#123;    &#x2F;&#x2F;设置窗口标题    this-&gt;setWindowTitle(&quot;AylmYi&quot;);    &#x2F;&#x2F;设置窗口图标 &amp;icon类型    this-&gt;setWindowIcon(QIcon(&quot;C:\\Users\\AylmYi\\Pictures\\Image_Test.jpg&quot;));&#125;Widget::~Widget()&#123;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li>自定义函数完成按钮显示隐藏<pre class="line-numbers language-none"><code class="language-none">connect(btn,&amp;QPushButton::clicked,this,[&#x3D;]()    &#123;        static bool flag&#x3D;true;        if(flag)        &#123;            btn_2-&gt;hide();        &#125;        else        &#123;            btn_2-&gt;show();            btn_2-&gt;setText(&quot;Changedname&quot;);        &#125;        flag &#x3D; !flag;        &#x2F;&#x2F;qDebug()&lt;&lt;&quot;我是A牛&quot;;    &#125;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul><h3 id="1-3-使用技巧"><a href="#1-3-使用技巧" class="headerlink" title="1.3 使用技巧"></a>1.3 使用技巧</h3><ul><li>自己类找不到函数,找基类里的函数<ul><li>QPushButton无Signal相关函数,找基类Inherits:QAbstractButton</li></ul></li><li>两下F1打开帮助文档,查找函数使用,帮助选项卡中索引也能寻找函数<ul><li>搜索到QIcon(const QString &amp;fileName),用文件路径导入</li></ul></li><li>注意逆向推导头文件名: #include”QIcon”</li></ul><h3 id="1-4-快捷键"><a href="#1-4-快捷键" class="headerlink" title="1.4 快捷键"></a>1.4 快捷键</h3><ul><li>注释-Ctrl+&#x2F;</li><li>查找替换</li><li>选取整行并移动代码:Ctrl+Shift+上|下</li><li>自动对齐:Ctrl+i</li><li>同名头文件&#x2F;源文件切换-F4<ul><li>写好头文件后,在函数声明行,Alt+Enter,可以快速编写定义</li></ul></li><li>一键修改所有的变量名:Ctrl+Shift+R</li><li>书签标记,快速跳转代码:Ctrl+M,Ctrl+ “,” | “.”</li><li>Ctrl + K O 快速打开</li></ul><h2 id="2-Qt音乐播放器制作"><a href="#2-Qt音乐播放器制作" class="headerlink" title="2 Qt音乐播放器制作"></a>2 Qt音乐播放器制作</h2><h3 id="2-1-导入资源文件"><a href="#2-1-导入资源文件" class="headerlink" title="2.1 导入资源文件"></a>2.1 导入资源文件</h3><h4 id="2-1-1-添加按钮图标"><a href="#2-1-1-添加按钮图标" class="headerlink" title="2.1.1 添加按钮图标"></a>2.1.1 添加按钮图标</h4><p><img src="https://pic.imgdb.cn/item/652b7eedc458853aef1734b1.jpg" alt="相对路径导入资源文件"></p><ul><li>addnew QT Resource文件夹</li><li>删去前缀，添加各类资源文件</li><li>选择按钮，改变样式表<br>但按钮存在边缘，选择主窗口，改变样式表<pre class="line-numbers language-none"><code class="language-none">*&#123;border:none;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li></ul><h4 id="2-1-2-获取MP3文件，并存储到列表窗口对象中"><a href="#2-1-2-获取MP3文件，并存储到列表窗口对象中" class="headerlink" title="2.1.2 获取MP3文件，并存储到列表窗口对象中"></a>2.1.2 获取MP3文件，并存储到列表窗口对象中</h4><pre class="line-numbers language-none"><code class="language-none">QDir dir(path); 从路径的一个QDirauto musicList&#x3D;dir.entryList(QStringList()&lt;&lt;&quot;*.mp3&quot;&lt;&lt;&quot;*.wav&quot;);&#x2F;&#x2F;检索后缀名.mp3.wav文件    &#x2F;&#x2F;放入列表窗口中ui-&gt;listWidget-&gt;addItems(musicList);&#x2F;&#x2F;保存完整路径for(auto file:musicList)  PlayList.append(QUrl::fromLocalFile(path+&#39;&#x2F;&#39;+file));<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><h3 id="2-2-播放功能设计"><a href="#2-2-播放功能设计" class="headerlink" title="2.2 播放功能设计"></a>2.2 播放功能设计</h3><ul><li>播放状态有，停止，播放，暂停</li></ul><h3 id="2-3-上一曲下一曲功能设计"><a href="#2-3-上一曲下一曲功能设计" class="headerlink" title="2.3 上一曲下一曲功能设计"></a>2.3 上一曲下一曲功能设计</h3><ul><li>控制索引Index操纵</li><li>取模解决越界问题</li></ul><h3 id="2-4-双击即播放"><a href="#2-4-双击即播放" class="headerlink" title="2.4 双击即播放"></a>2.4 双击即播放</h3><h3 id="2-5-播放进度条设计"><a href="#2-5-播放进度条设计" class="headerlink" title="2.5 播放进度条设计"></a>2.5 播放进度条设计</h3><ul><li>connect获取媒体总时长，duration毫秒单位</li><li>拖动进度条改变进度设置</li><li>connect四参数的应用</li><li>QAudioOutput没咋用？</li><li>Icon导入，要选择已索引过的资源路径</li></ul><h2 id="3-Qt桌面壁纸"><a href="#3-Qt桌面壁纸" class="headerlink" title="3 Qt桌面壁纸"></a>3 Qt桌面壁纸</h2><h3 id="3-1-VS中使用QT"><a href="#3-1-VS中使用QT" class="headerlink" title="3.1 VS中使用QT"></a>3.1 VS中使用QT</h3><h4 id="3-1-1-VS安装QT拓展"><a href="#3-1-1-VS安装QT拓展" class="headerlink" title="3.1.1 VS安装QT拓展"></a>3.1.1 VS安装QT拓展</h4><ul><li><p>不能引用Qt头文件</p><ul><li>项目属性中添加QTmodules<br><img src="https://pic.imgdb.cn/item/652df40cc458853aef4f4f85.jpg" alt="添加core,gui,widgets"></li></ul></li><li><p>添加Widget类进行编辑，这里为了不适用Ui,选择Qtclass<br><img src="https://pic.imgdb.cn/item/652df5d5c458853aef5351e3.jpg" alt="修改基类"></p></li></ul><h2 id="4-嵌入式学习之QT"><a href="#4-嵌入式学习之QT" class="headerlink" title="4 嵌入式学习之QT"></a>4 嵌入式学习之QT</h2><p>参考资料:</p><ul><li><a href="https://www.bilibili.com/video/BV1tp4y1i7EJ?p=6&vd_source=3b79726d0bfe11498e42e05d1b77f109">北京迅为QT学习</a></li></ul><h3 id="4-1-信号与槽"><a href="#4-1-信号与槽" class="headerlink" title="4.1 信号与槽"></a>4.1 信号与槽</h3><ul><li>自动关联与手动关联<ul><li>自动关联<ul><li>在ui中选择控件对象添加槽函数</li></ul></li><li>手动关联<ul><li>使用connect函数(signal sender,<strong>signal</strong>,receiver,<strong>method(how to do</strong>))</li></ul></li><li>connect(A,SIGNAL(B),C,SLOT(D))</li><li>当对象A发出B信号，会触发C对象的槽函数D</li></ul></li></ul><h3 id="4-2-QT三驾马车"><a href="#4-2-QT三驾马车" class="headerlink" title="4.2 QT三驾马车"></a>4.2 QT三驾马车</h3><h4 id="4-2-1-QT串口编程"><a href="#4-2-1-QT串口编程" class="headerlink" title="4.2.1 QT串口编程"></a>4.2.1 QT串口编程</h4><h4 id="4-2-2-QT网络编程"><a href="#4-2-2-QT网络编程" class="headerlink" title="4.2.2 QT网络编程"></a>4.2.2 QT网络编程</h4><h4 id="4-2-3-QT操作GPIO"><a href="#4-2-3-QT操作GPIO" class="headerlink" title="4.2.3 QT操作GPIO"></a>4.2.3 QT操作GPIO</h4><!-- - [一个PC多版本QT](https://blog.csdn.net/weixin_41882459/article/details/106344197)- [QT切版本](https://blog.csdn.net/Wslience/article/details/132159413?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-132159413-blog-106344197.235^v38^pc_relevant_sort_base2&spm=1001.2101.3001.4242.1&utm_relevant_index=3)- [QT多版本共存](https://blog.csdn.net/weixin_41962350/article/details/124434113) -->]]></content>
+      
+      
+      <categories>
+          
+          <category> Qt </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Qt </tag>
+            
+            <tag> GUI </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>10月技巧经验汇总</title>
+      <link href="/2023/10/08/ji-qiao-hui-zong/10-yue-ji-qiao-jing-yan-hui-zong/"/>
+      <url>/2023/10/08/ji-qiao-hui-zong/10-yue-ji-qiao-jing-yan-hui-zong/</url>
+      
+        <content type="html"><![CDATA[<h1 id="10月技巧经验汇总"><a href="#10月技巧经验汇总" class="headerlink" title="10月技巧经验汇总"></a>10月技巧经验汇总</h1><ul><li>EndNote</li><li>Opencv</li></ul><h2 id="1-EndNote使用指南"><a href="#1-EndNote使用指南" class="headerlink" title="1 EndNote使用指南"></a>1 EndNote使用指南</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1eX4y1C7tZ/?spm_id_from=333.880.my_history.page.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">EndNote教程</a></li></ul><h3 id="1-1-导入文献"><a href="#1-1-导入文献" class="headerlink" title="1.1 导入文献"></a>1.1 导入文献</h3><ul><li><p>英文Web of Sciense导入</p><ul><li>选择所需文献后,导出EndNote Desktop,选择含摘要导出.ciw</li><li>双击导入EN或手动导入,选择ISI-CE</li></ul></li><li><p>PDF导入</p><ul><li>原理是使用DOI,联网获取信息,只适用于英文文献</li><li>若导入有误,是因为DOI没识别,手动检索到DOI后,手动输入,再查找文献更新</li></ul></li><li><p>中文知网导入</p><ul><li>导出EN文件.txt</li><li>手动导入,选择EN Import,若出现乱码问题,末尾处选择UTF-8</li><li>避免标题与期刊名重合<ul><li>编辑-导入过滤器-过滤管理-EndNote Import-修改Journal-%B改%J</li><li>随后过滤器选择EN Import(Changed)</li></ul></li><li>万方导入与知网类似,导出txt,EN Import</li></ul></li><li><p>使用Tips</p><ul><li><strong>若文献中有空字段,可自动更新</strong>(此方法仅对英文文献有效)</li></ul></li></ul><h3 id="1-2-管理文献"><a href="#1-2-管理文献" class="headerlink" title="1.2 管理文献"></a>1.2 管理文献</h3><ul><li>组与组集的概念</li><li>重复文献剔除<ul><li>查找重复</li><li>在重复的文献栏中删除</li></ul></li><li>文件链接<ul><li>PDF类型导入可手动链接</li><li>英文文献可用查找全文</li></ul></li></ul><h3 id="1-3-引用文献"><a href="#1-3-引用文献" class="headerlink" title="1.3 引用文献"></a>1.3 引用文献</h3><ul><li><p>导出样式编辑</p><ul><li><a href="https://endnote.com/downloads/styles/">EN格式下载</a></li><li>选择样式管理器中已有的,可在EN官网下载样式文件到EN安装文件夹Styles</li></ul></li><li><p>Word中引用</p><ul><li>EN选项卡中,选择好样式格式,插入选中的引用</li><li>在EN软件中Ctrl+C,在Word中Ctrl+V<ul><li>CV方法会显示域代码,点击更新即可</li></ul></li><li>同时引用多篇文献时,EN选中多篇CV</li><li>默认排序是根据CV中的排序,若需要调整,管理引文,可以编辑排序以及移除部分引文</li></ul></li><li><p>投稿前,禁止有域代码</p><ul><li>Word文件备份后,将引文域代码部分转为纯文本</li><li>或备份后,选中全文,Ctrl+Shift+F9</li></ul></li></ul><h3 id="1-4-补充内容"><a href="#1-4-补充内容" class="headerlink" title="1.4 补充内容"></a>1.4 补充内容</h3><h4 id="1-4-1-GB格式"><a href="#1-4-1-GB格式" class="headerlink" title="1.4.1 GB格式"></a>1.4.1 GB格式</h4><ul><li>国内中文期刊引文要求,通常是GB&#x2F;T 7714-2015</li><li>对应EN官网Chinese Standard GBT7714(numeric) 顺序编码制(最常用)</li></ul><h4 id="1-4-2-GB格式修正"><a href="#1-4-2-GB格式修正" class="headerlink" title="1.4.2 GB格式修正"></a>1.4.2 GB格式修正</h4><ul><li>按照国标要求,会出现[J]前方有空格,需要删除空格,使用修改后的GB</li><li>多个作者时,英文文献中使用”et al”,中文文献中应使用”等”<ul><li>将域代码转为纯文本后,选择中文文献区块,用查找替换功能修改为等</li></ul></li><li>更改作者数量,列出全部作者或前六位作者,需修改导出样式</li></ul><h4 id="1-4-3-引用网页文献"><a href="#1-4-3-引用网页文献" class="headerlink" title="1.4.3 引用网页文献"></a>1.4.3 引用网页文献</h4><ul><li>手动编辑引用信息,用时再学</li></ul><h2 id="2-OpenCV安装与配置"><a href="#2-OpenCV安装与配置" class="headerlink" title="2 OpenCV安装与配置"></a>2 OpenCV安装与配置</h2><p>参考资料：</p><ul><li><a href="https://opencv.org/releases/">OpenCV官网</a></li><li><a href="https://www.bilibili.com/video/BV1S541127kp/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109">配置指南</a></li></ul><h3 id="2-1-添加系统的环境变量"><a href="#2-1-添加系统的环境变量" class="headerlink" title="2.1 添加系统的环境变量"></a>2.1 添加系统的环境变量</h3><ul><li>C:\opencv\build\x64\vc15\bin</li></ul><h3 id="2-2-配置VS属性表"><a href="#2-2-配置VS属性表" class="headerlink" title="2.2 配置VS属性表"></a>2.2 配置VS属性表</h3><ul><li>设备管理器中选择Debug_x64,添加新表</li><li>VC++包含目录，加入<ul><li>C:\opencv\build\include</li><li>C:\opencv\build\include\opencv2</li></ul></li><li>库目录，加入<ul><li>C:\opencv\build\x64\vc15\lib</li></ul></li><li>链接器中输入附加依赖项<ul><li>opencv_world342d.lib(库目录lib下的文件名)</li></ul></li><li>Release_x64中与Debug基本相同，附加项文件名为opencv_world342.lib</li></ul><h3 id="2-3-VS不能正常运行"><a href="#2-3-VS不能正常运行" class="headerlink" title="2.3 VS不能正常运行"></a>2.3 VS不能正常运行</h3><ul><li>需要把C:\opencv\build\x64\vc15\bin下的dll复制到C:\Windows\System32下</li><li>此后，任意新项目，只需要添加已制作好的属性表即可使用opencv</li></ul><!-- ## 2 文献查阅与下载参考资料：- [检索并下载学术科研论文](https://www.bilibili.com/video/BV1bF411f7wC/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109)### 2.1 八大平台- 学术平台  - [中国知网](https://www.cnki.net/)-本科生使用  - [X-Mol学术平台](https://www.x-mol.com/)-信息更新不及时  - [谷歌学术](https://scholar.google.com.hk/?hl=zh-CN)  - [谷歌学术镜像](https://ac.scmor.com/)  - [arXiv预印本平台](https://arxiv.org/)-提前发布，占个坑- 出版商平台（学术平台更新不及时）  - [Elsevier](https://www.sciencedirect.com/)  - [IEEE](https://ieeexplore.ieee.org/Xplore/home.jsp)-质量更高  - [ACM](https://dl.acm.org/)  - [Springer](https://link.springer.com/)- 了解研究背景，在谷歌学术上找高引用的文章- 最新的论文，可在四个出版商，最新最新的在arXiv预印本 --><!-- ## 水神队长-研究生规划参考资料：- [研究生规划](https://www.bilibili.com/video/BV1sG411f7kF/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109)读研目的- 真正研究-海外读博-回国985/211- 提高能力，拓宽就业面-大厂/读博当老师- 学历，考公考编-事业编，公务员认清自己（定位，选择）- 研一上，论文-精读3-5论文- 研一下，实验，写作  - 为了保毕业  - 如感兴趣，多写几篇  - 否则拖慢进度，压在手里面，留点时间 -->]]></content>
+      
+      
+      <categories>
+          
+          <category> 月汇总 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 月汇总 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>9月技巧经验汇总</title>
+      <link href="/2023/09/26/ji-qiao-hui-zong/9-yue-ji-qiao-jing-yan-hui-zong/"/>
+      <url>/2023/09/26/ji-qiao-hui-zong/9-yue-ji-qiao-jing-yan-hui-zong/</url>
+      
+        <content type="html"><![CDATA[<h1 id="9月技巧经验汇总"><a href="#9月技巧经验汇总" class="headerlink" title="9月技巧经验汇总"></a>9月技巧经验汇总</h1><ul><li>查找某作者的全部论文</li><li>文献查阅与下载</li><li>选择高质量论文</li><li>精读SCI</li></ul><h2 id="1-查找某作者的全部论文"><a href="#1-查找某作者的全部论文" class="headerlink" title="1 查找某作者的全部论文"></a>1 查找某作者的全部论文</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1c44y1w7Mp/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109">如何找到一个人发表的全部论文</a></li><li><a href="https://www.scopus.com/">Scopus</a></li></ul><p>具体操作步骤：</p><ul><li>1 找到某作者任意一篇EI&#x2F;SCI检索文章</li><li>2 登录Scopus网页，可以搜出相关信息</li></ul><h2 id="2-文献查阅与下载"><a href="#2-文献查阅与下载" class="headerlink" title="2 文献查阅与下载"></a>2 文献查阅与下载</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1bF411f7wC/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109">检索并下载学术科研论文</a></li></ul><h3 id="2-1-八大平台"><a href="#2-1-八大平台" class="headerlink" title="2.1 八大平台"></a>2.1 八大平台</h3><ul><li>学术平台<ul><li><a href="https://www.cnki.net/">中国知网</a>-本科生使用</li><li><a href="https://www.x-mol.com/">X-Mol学术平台</a>-信息更新不及时</li><li><a href="https://scholar.google.com.hk/?hl=zh-CN">谷歌学术</a></li><li><a href="https://ac.scmor.com/">谷歌学术镜像</a></li><li><a href="https://arxiv.org/">arXiv预印本平台</a>-提前发布，占个坑</li></ul></li><li>出版商平台（学术平台更新不及时）<ul><li><a href="https://www.sciencedirect.com/">Elsevier</a></li><li><a href="https://ieeexplore.ieee.org/Xplore/home.jsp">IEEE</a>-质量更高</li><li><a href="https://dl.acm.org/">ACM</a></li><li><a href="https://link.springer.com/">Springer</a></li></ul></li><li>了解研究背景，在谷歌学术上找高引用的文章</li><li>最新的论文，可在四个出版商，最新最新的在arXiv预印本</li></ul><h3 id="2-2-下载论文"><a href="#2-2-下载论文" class="headerlink" title="2.2 下载论文"></a>2.2 下载论文</h3><ul><li><p>学校图书馆</p></li><li><p><a href="https://www.ablesci.com/">科研通</a></p><ul><li>有SCI-Hub链接:两年前的文章可以下载</li><li>需要较新文章，使用文献求助功能</li><li>网页科研导航页面集成了很多其他功能</li></ul></li><li><p><a href="http://www.letpub.com.cn/index.php?page=journalapp&view=search">Letpub查找期刊等级</a></p></li><li><p><a href="https://gfsoso.99lb.net/">谷粉学术网站</a></p></li></ul><h2 id="3-选择第一篇（高质量）论文"><a href="#3-选择第一篇（高质量）论文" class="headerlink" title="3 选择第一篇（高质量）论文"></a>3 选择第一篇（高质量）论文</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV12P411x7B9/?vd_source=3b79726d0bfe11498e42e05d1b77f109">选择第一篇论文阅读</a></li></ul><h3 id="3-1-确定领域"><a href="#3-1-确定领域" class="headerlink" title="3.1 确定领域"></a>3.1 确定领域</h3><ul><li>谷歌学术上，关键字搜索，引用量高的</li></ul><h3 id="3-2-选择论文"><a href="#3-2-选择论文" class="headerlink" title="3.2 选择论文"></a>3.2 选择论文</h3><ul><li>优先选择顶会、顶刊，借助Letpub查阅</li><li>选择开源代码的顶会顶刊，Github查代码</li><li>查询多篇论文中，实验数据表中重复出现过的对照组（Baseline）例如：”DCRNN”</li><li>借助知乎、微信搜索，验证关键词热度</li></ul><h2 id="4-精读SCI"><a href="#4-精读SCI" class="headerlink" title="4 精读SCI"></a>4 精读SCI</h2><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV12h4y1Q7F7/?p=9&spm_id_from=pageDriver&vd_source=3b79726d0bfe11498e42e05d1b77f109">为什么要精读SCI？怎么样精读SCI？精度到什么层次？</a></li></ul><h3 id="4-1-什么是经典论文"><a href="#4-1-什么是经典论文" class="headerlink" title="4.1 什么是经典论文"></a>4.1 什么是经典论文</h3><ul><li>提供模板级别的写作指导</li><li>方法上，简单有效，可拓展性强</li><li>代码上，框架清晰，经得住考验，可学习改为自己的模板</li><li>相关工作上，阐明了整个领域的发展历程</li></ul><h3 id="4-2-为什么读经典论文"><a href="#4-2-为什么读经典论文" class="headerlink" title="4.2 为什么读经典论文"></a>4.2 为什么读经典论文</h3><ul><li>了解基础知识，省时间</li><li>作为写作、代码模板</li><li>可拓展，二次改进</li></ul><h3 id="4-3-什么人需要精读"><a href="#4-3-什么人需要精读" class="headerlink" title="4.3 什么人需要精读"></a>4.3 什么人需要精读</h3><ul><li>本科毕设，研一，不必多说</li><li>研二（已经读过一些论文）<ul><li>浅层-用什么方法解决什么问题</li><li>深层——<strong>为什么使用这种方法：理论上，明确算法优点，对症下药</strong></li><li>深层——<strong>这个方法为什么能够解决这个问题：实践上，实验中，找到真正起作用的模块</strong></li></ul></li></ul><h3 id="4-4-精读到什么程度"><a href="#4-4-精读到什么程度" class="headerlink" title="4.4 精读到什么程度"></a>4.4 精读到什么程度</h3><ul><li>除了精读论文，还有精读代码</li><li>精读论文<ul><li>从小，每句话每个元素都有存在的意义，每句话，每个公式，每个图表</li><li>从大<ul><li>为什么使用这种方法：理论上，明确算法优点，对症下药</li><li>这个方法为什么能够解决这个问题：实践上，实验中，找到真正起作用的模块<!-- ## 水神队长-研究生规划参考资料：</li></ul></li></ul></li><li><a href="https://www.bilibili.com/video/BV1sG411f7kF/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109">研究生规划</a></li></ul><p>读研目的</p><ul><li>真正研究-海外读博-回国985&#x2F;211</li><li>提高能力，拓宽就业面-大厂&#x2F;读博当老师</li><li>学历，考公考编-事业编，公务员</li></ul><p>认清自己（定位，选择）</p><ul><li>研一上，论文-精读3-5论文</li><li>研一下，实验，写作<ul><li>为了保毕业</li><li>如感兴趣，多写几篇</li><li>否则拖慢进度，压在手里面，留点时间 –&gt;</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 月汇总 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 月汇总 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>联通MATLAB与Mathematica</title>
+      <link href="/2023/09/21/mathematica/link-matlab-with-mathematica/"/>
+      <url>/2023/09/21/mathematica/link-matlab-with-mathematica/</url>
+      
+        <content type="html"><![CDATA[<h2 id="LINK-Mathematica-with-Mat"><a href="#LINK-Mathematica-with-Mat" class="headerlink" title="LINK Mathematica with Mat"></a>LINK Mathematica with Mat</h2><ul><li>Win10+MATLAB18b+Mathematica 9.0(Radia)</li></ul><p>参考资料：</p><ul><li><a href="https://blog.csdn.net/Azahaxia/article/details/121686965">MATLink安装</a></li><li><a href="https://blog.csdn.net/miscclp/article/details/23687019?%3E">MATLink安装试例</a></li><li><a href="https://blog.csdn.net/weixin_30889885/article/details/99448645?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-99448645-blog-23687019.235%5Ev38%5Epc_relevant_sort_base3&spm=1001.2101.3001.4242.1&utm_relevant_index=3%5D">MATLAB调用Mathe</a></li><li><a href="https://www.cnblogs.com/Leonhard-E/archive/2012/07/05/2577136.html">MATLAB调用Mathe源博客</a></li></ul><h3 id="Mathematica-Link-Mat"><a href="#Mathematica-Link-Mat" class="headerlink" title="Mathematica Link Mat"></a>Mathematica Link Mat</h3><ul><li><p><a href="http://matlink.org/">下载MATLink</a></p></li><li><p>在Mathematica中执行指令打开文件夹并将MATLink文件移至此</p><pre class="line-numbers language-none"><code class="language-none">SystemOpen@FileNameJoin[&#123;$UserBaseDirectory, &quot;Applications&quot;&#125;]<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li><li><p>添加环境变量Path: C:\Program Files\MATLAB\R2018b\bin\win64</p></li><li><p>需要在MATLAB命令行下输入指令regmatlabserver，将MATLAB注册为COM服务器，须以管理员权限打开MATLAB</p></li><li><p>MATLink常用指令</p><pre class="line-numbers language-none"><code class="language-none">Needs[&quot;MATLink&#96;&quot;]                (*加入MATLink包*)OpenMATLAB[]                     (*与MATLAB建立连接*)CloseMATLAB[]                    (*关闭连接*)magic &#x3D; MFunction[&quot;magic&quot;]       (*使用MATLAB函数‘magic’*)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li><li><p>测试代码</p><pre class="line-numbers language-none"><code class="language-none">Needs[&quot;MATLink&#96;&quot;];(*打开通信包*)OpenMATLAB[];(*建立与Matlab通信*)cdd &#x3D; NotebookDirectory[];(*取得当前notebook的文件夹未知*)MSet[&quot;cdd&quot;, \cdd];(*将此变量传入Matlab*)MEvaluate[&quot;addpath(cdd)&quot;];(*将当前路径加入Matlab系统路径，以找到和调用当前文件夹下的Matlab程序*)\MEvaluate[&quot;mat &#x3D; magic(4)&quot;] (*尝试调用Matlab函数*)mat &#x3D; MGet[&quot;mat&quot;] (*取得Matlab中的变量值*)MSet[&quot;a&quot;, 3];(*放入a变量*)MSet[&quot;b&quot;, 5];(*放入b变量*) MEvaluate[&quot;add2(a, b)&quot;] (*调用当前目录下Matlab函数add2实现两个数的加法运算*) add &#x3D; MFunction[&quot;add2&quot;] (*取得当前目录下Matlab函数add2的地址*)add[3, 5] (*以Mathematica方式调用add2函数*)CloseMATLAB[] (*关闭Matlab*)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul><h3 id="Mat-Link-Mathematica"><a href="#Mat-Link-Mathematica" class="headerlink" title="Mat Link Mathematica"></a>Mat Link Mathematica</h3><ul><li><p>Matlab中调用mex -setup</p></li><li><p><a href="http://files.cnblogs.com/Leonhard-E/Matlab_Mathematica_Link.zip">下载Mat Mathe link文件</a>解压后移至 C:\Program Files\MATLAB\R2018b</p></li><li><p>在Mathematica文件夹中找到ml32i3m.lib移至Mat Mathe_link文件夹</p></li><li><p>运行mathrun.m,运行后完成MEX</p><ul><li><strong>ATTENTION</strong>：修改路径为以下<pre class="line-numbers language-none"><code class="language-none">clearclcaddpath C:\Users\Nexus\AppData\Roaming\Mathematica\Applications\Matlab_Mathematica_Link; % adds the directory C:\XXX to the list of directories which Matlab &quot;sees&quot; (referred to as paths)mlpath&#x3D;&#39;C:\Users\Nexus\AppData\Roaming\Mathematica\Applications\Matlab_Mathematica_Link&#39;; % The directory where mathlink.h ismllib&#x3D;&#39;C:\Users\Nexus\AppData\Roaming\Mathematica\Applications\Matlab_Mathematica_Link\ml64i3m.lib&#39;; %The library ml32i1m.lib%make commandcommand&#x3D;sprintf(&#39;mex -D__STDC__ -I%s %s %s&#39;, mlpath, &#39;math.c&#39;, mllib);%compileeval(command)  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul></li><li><p>随后可根据testscript.m进行测试</p></li><li><p>Matlab初次调用Mathematica函数时，选择Mathematica安装目录下的MathKernel.exe或Math.exe文件</p></li><li><p>Mathematica.md自定义函数如何编辑</p><ul><li>创建.txt文件编辑函数，改后缀为.md</li><li>文件名须与函数名同名</li><li>.md文件放置于Matlab_Mathematica_Link中</li></ul></li><li><p>测试代码1</p><pre class="line-numbers language-none"><code class="language-none">.md:myfunction[a0_, b0_, c0_] :&#x3D;Module[&#123;a&#x3D;a0,b&#x3D;b0,c&#x3D;c0&#125;,d&#x3D;a+b;e&#x3D;a+c;f&#x3D;c;y&#x3D;d+e+f;y].m:math(&#39;$Version&#39;);math(&#39;&lt;&lt;myfunction.nb&#39;)math(&#39;myfunction[1,1,1]&#39;)math(&#39;quit&#39;)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li><li><p>关于Matlab_Mathematica_Link文件夹</p><ul><li>MATLAB中完成MEX需要设置路径C:\Users\AylmYi\AppData\Roaming\Mathematica\Applications\MATLink</li><li>.md文件存放至C:\Program Files\MATLAB\R2018b\Matlab_Mathematica_Link中</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mathematica </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> MATLAB </tag>
+            
+            <tag> Mathematica </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Mathematica软件入门</title>
+      <link href="/2023/09/19/mathematica/mathematica/"/>
+      <url>/2023/09/19/mathematica/mathematica/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Mathematica-入门"><a href="#Mathematica-入门" class="headerlink" title="Mathematica 入门"></a>Mathematica 入门</h2><ul><li><a href="https://www.bilibili.com/video/BV1oh411d7XB/?spm_id_from=333.337.search-card.all.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">入门教程</a></li></ul><h3 id="1-1-基础运算"><a href="#1-1-基础运算" class="headerlink" title="1.1 基础运算"></a>1.1 基础运算</h3><ul><li>Shift+Enter 运算</li><li>函数开头大写字母:Sqrt[13],Cos,Log,ArcTan[1]</li><li>计算式化简<ul><li>Simplify[XXX]</li><li>XXX &#x2F;&#x2F;Simplify</li></ul></li><li>附加条件: Assumptions -&gt; { a&gt;0 , b&lt;0 }</li><li>分解因式：Factor[]</li><li>数据传递<ul><li>test&#x3D;(2+t)(15+t)</li><li>t&#x3D;a</li><li>此时 test&#x3D;(2+a)(15+a)</li><li>t&#x3D;. 该命令将重置 t&#x3D;t</li><li>test&#x3D;(2+t)(15+t)</li></ul></li><li>类似 matlab 的帮助命令： ? Simplify</li></ul><h3 id="1-2-逻辑运算"><a href="#1-2-逻辑运算" class="headerlink" title="1.2 逻辑运算"></a>1.2 逻辑运算</h3><ul><li>与或非: &amp;&amp; || !</li><li>If[ True&#x2F;False , 4,-2]<ul><li>a&gt;b?4:-2</li></ul></li></ul><h3 id="1-3-解方程-微分-积分-微分方程"><a href="#1-3-解方程-微分-积分-微分方程" class="headerlink" title="1.3 解方程|微分|积分|微分方程"></a>1.3 解方程|微分|积分|微分方程</h3><h3 id="1-3-1-解方程"><a href="#1-3-1-解方程" class="headerlink" title="1.3.1 解方程"></a>1.3.1 解方程</h3><ul><li>方程<ul><li>Solve[a x^2+b x+c&#x3D;&#x3D;0,x]</li><li>系数与 x 分隔开</li><li>用&#x3D;&#x3D;号</li></ul></li><li>方程组<ul><li>Solve[ {Eq.1 , Eq.2} , {t,m} ]</li><li>Attention! 解方程需要参数不能有赋值，t&#x3D;.</li></ul></li></ul><h3 id="1-3-2-微积分"><a href="#1-3-2-微积分" class="headerlink" title="1.3.2 微积分"></a>1.3.2 微积分</h3><ul><li><p>求导 D[f(t),t]</p></li><li><p>积分 Integrate[f(t),t]</p></li><li><p>级数展开 Series[]</p></li><li><p>函数嵌套的多种形式</p><ul><li>F[f]</li><li>f&#x2F;&#x2F;F</li><li>F[x,t]</li><li>x &#x2F;&#x2F; F[#,t]&amp;</li></ul></li><li><p>极限 Limit[f(x), x-&gt;0]</p></li><li><p>函数定义 f[ t_ ] :&#x3D; t^2-t</p></li><li><p>解微分方程 DSolve[ Eq.1 , f[x] , x]</p></li></ul><h3 id="1-4-矩阵列表运算"><a href="#1-4-矩阵列表运算" class="headerlink" title="1.4 矩阵列表运算"></a>1.4 矩阵列表运算</h3><ul><li>B&#x3D;Table[f[i + 1, j] + 2, {i, 1, 4}, {j, 1, 3}]<ul><li>i,j 分别取行列</li></ul></li><li>矩阵形式:B &#x2F;&#x2F;Matrix</li><li>列表取值<ul><li>B[[ 1,1 ]]</li><li>B[[ 3,;; ]] 第3行</li><li>B[[ ;;,2 ]] 第2列</li></ul></li><li>矩阵运算<ul><li>A.B 矩阵相乘</li><li>求特征值-Eigenvalues[B]</li><li>求特征向量-Eigenvectors[B]</li><li>行列式-Det[B]</li><li>转置-Transpose[B]</li><li>逆矩阵-Inverse[B]</li><li>行列不同的列表 Table[i+j,{i,1,4},{j,1,i}]</li></ul></li></ul><h3 id="1-5-替换"><a href="#1-5-替换" class="headerlink" title="1.5 替换"></a>1.5 替换</h3><ul><li>应用<ul><li>可以替换函数映射关系</li><li>可以去除函数映射关系</li></ul></li><li>使用test&#x3D;{ {c[2],c[3]} {c[3],c[4]} }<ul><li>修改函数映射关系: test &#x2F;.c-&gt;f  c[2]变为f[2]</li><li>消去函数映射关系：test &#x2F;.c[p_]-&gt;p c[2]变为2</li><li>等价于 ReplaceAll[ test , c[p_]-&gt;p ]</li><li>y[c, c, 3, c, 51, c, c, 3] &#x2F;&#x2F;. y[n1___, c, n2___] -&gt; y[n1, n2] 该语句能去除所有c，两个__代表至少有一元素的一列元素，三个___可以代表有0个元素的列元素</li></ul></li></ul><h3 id="1-6-输入输出"><a href="#1-6-输入输出" class="headerlink" title="1.6 输入输出"></a>1.6 输入输出</h3><ul><li>SetDirectory[NotebookDirectory[] ];设置为当前目录</li><li>Export[“..&#x2F;test.m”,t] t输出保存到test.m文件中</li><li>一组文件<ul><li>Do[Export[“test”&lt;&gt;ToString[i]&lt;&gt;”.m”,t[i]]]</li><li>&lt;&gt;即连接字符串，将会生成test1.m,test2.m,test3.m多个文件</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mathematica </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Mathematica </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>COMSOL入门</title>
+      <link href="/2023/08/24/comsol-ru-men/"/>
+      <url>/2023/08/24/comsol-ru-men/</url>
+      
+        <content type="html"><![CDATA[<h1 id="快速上手COMSOL"><a href="#快速上手COMSOL" class="headerlink" title="快速上手COMSOL"></a>快速上手COMSOL</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1K44y1v7Vx/?spm_id_from=333.880.my_history.page.click">COMSOL三天培训课</a></li></ul><h2 id="1-COMSOL初识"><a href="#1-COMSOL初识" class="headerlink" title="1 COMSOL初识"></a>1 COMSOL初识</h2><h3 id="1-1-COMSOL软件产品库"><a href="#1-1-COMSOL软件产品库" class="headerlink" title="1.1 COMSOL软件产品库"></a>1.1 COMSOL软件产品库</h3><ul><li>COMSOL multiphysics</li><li>comsol compiler - 开发独立执行的仿真app .exe</li></ul><h3 id="1-2-COMSOL工作流程"><a href="#1-2-COMSOL工作流程" class="headerlink" title="1.2 COMSOL工作流程"></a>1.2 COMSOL工作流程</h3><ul><li>前处理&#x2F;计算&#x2F;后处理</li><li></li><li><strong>定义求解的问题类型</strong></li><li>绘制（导入）CAD几何</li><li>定义每个求解域的材料属性</li><li>设定 载荷和边界条件</li><li>网格剖分</li><li>求解模型SOLUTION</li><li>后处理和报告结果</li><li>修改与优化（从哪些角度参考优化）<ul><li>实验与仿真结合</li><li>其他的仿真软件，结果对比</li><li>查文献</li><li>运用守恒定律</li></ul></li></ul><h3 id="1-3-进入软件"><a href="#1-3-进入软件" class="headerlink" title="1.3 进入软件"></a>1.3 进入软件</h3><ul><li><p>首选项设置</p><ul><li>图形和绘图窗口-渲染设置OpenGL使用显卡，显卡差使用软件</li><li>设置临时文件夹和恢复文件夹</li></ul></li><li><p>1 添加几何体</p><ul><li><p>左键改变视角，右键移动中心点，中键滚轮缩放视角</p></li><li><p>图形窗口中的各项功能</p><ul><li><strong>图像快照，导出图片</strong></li></ul></li></ul></li><li><p>2 定义材料</p><ul><li>添加库中材料</li><li>材料有自己的基本属性<ul><li>所用物理场的属性会标有记号</li><li>属性值若缺失，需要通过实验测量或阅读文献来补充缺失的属性值</li></ul></li></ul></li><li><p>3 设置物理场</p><ul><li>域条件</li><li>边界条件<ul><li>选择面，设置值</li></ul></li></ul></li><li><p>4 网格绘制</p></li><li><p>5 计算</p><ul><li>得结果</li></ul></li><li><p>6 结果</p></li></ul><h2 id="2-COMSOL几何建模"><a href="#2-COMSOL几何建模" class="headerlink" title="2 COMSOL几何建模"></a>2 COMSOL几何建模</h2><h3 id="2-1-几何建模"><a href="#2-1-几何建模" class="headerlink" title="2.1 几何建模"></a>2.1 几何建模</h3><ul><li>二维基本形状</li><li>缩放拉伸、阵列拷贝、镜像翻转</li><li>布尔运算</li></ul><h3 id="2-2-随机函数获得粗糙线-面"><a href="#2-2-随机函数获得粗糙线-面" class="headerlink" title="2.2 随机函数获得粗糙线|面"></a>2.2 随机函数获得粗糙线|面</h3><ul><li>定义随机函数</li><li>几何中构建参数化曲线|曲面（两个变元）</li><li>几何进行分割域</li><li>删除域实体</li></ul><h3 id="2-3-从三维实体提取二维结构"><a href="#2-3-从三维实体提取二维结构" class="headerlink" title="2.3 从三维实体提取二维结构"></a>2.3 从三维实体提取二维结构</h3><ul><li><p>添加新的二维组件</p></li><li><p>选择横截面，选取三维实体的某一面</p></li><li><p>层的概念</p><ul><li>对于一些波的吸收处理<ul><li>电磁波，矢量波动方程</li><li>声波，标量</li><li>机械波，横纵波</li></ul></li><li>因几何距离不会无限大，波的反射会影响到发射端，所以要吸收</li><li>最外围加入 层（PML） 的域，用以吸收波</li></ul></li></ul><h3 id="2-4-联合体与装配体"><a href="#2-4-联合体与装配体" class="headerlink" title="2.4 联合体与装配体"></a>2.4 联合体与装配体</h3><ul><li>默认形成联合体，物理量会自动连续在一起的</li><li>改成装配体，物理量不连续，会用 对 在分界处形成强制连续</li><li>必须使用装配体<ul><li>当两个对象形成接触<ul><li>形成装配体能产生<strong>接触对</strong></li></ul></li><li>求解域绕其他域旋转<ul><li>形成装配体能产生<strong>一致对</strong></li><li>旋转电磁场（AC&#x2F;DC Module）</li><li>流体旋转</li></ul></li></ul></li><li>不能使用装配体<ul><li>求解旋度-旋度方程的物理场（如Maxwell）<ul><li>三维电磁波（RF和波动光学模块）|| 二维电磁波可用</li><li>所有的三维磁矢场方程（AC&#x2F;DC模块）|| 三维磁标场可用</li></ul></li></ul></li></ul><h3 id="2-5-几何建模的五点原则"><a href="#2-5-几何建模的五点原则" class="headerlink" title="2.5 几何建模的五点原则"></a>2.5 <strong>几何建模的五点原则</strong></h3><ul><li><p>处理点接触</p><ul><li>奇异点处压强无限大</li><li>间隙隔开，或点改面 重叠</li><li>一般使用间隙或重叠取代，分析间隙越来越小时的结果</li></ul></li><li><p>大尺度比例关系</p><ul><li>如厚度很薄的桌子实体，很细的长杆</li><li>二维下，Lmax &gt;&gt; 1000Lmin</li><li>三维下，Lmax &gt;&gt; 100Lmin</li><li>若不关心最小的特征，删除最小的特征，或假设在一个（或两个）维度方向上忽略结果的变化</li><li>如螺丝螺栓螺钉，特别小，在仿真时毫无作用</li></ul></li><li><p>薄层结构</p><ul><li>如一个立方体，中间本应有一薄层，几何绘制中不需要画出，可以在边界条件中选择薄层处理</li><li>基本上所有物理场接口中都能将薄层材料处理成边界条件</li></ul></li><li><p>简化处理不必要的细节</p><ul><li>如一些刻字等Logo，标识符等，仿真时不关系这些地方的物理量分布，但它们的存在会极大地影响网格</li></ul></li><li><p>处理角部细节</p><ul><li>如一些矩形块，边缘不稳定，可以改成圆角处理</li></ul></li></ul><h3 id="2-6-CAD导入"><a href="#2-6-CAD导入" class="headerlink" title="2.6 CAD导入"></a>2.6 CAD导入</h3><ul><li>保留分析所需的重要特征</li><li>避免装饰性结构</li><li>在CAD源文件上进行修改</li></ul><h3 id="2-7-数据修复操作"><a href="#2-7-数据修复操作" class="headerlink" title="2.7 数据修复操作"></a>2.7 数据修复操作</h3><ul><li>删除面，不关心的，有洞可以填满</li><li>删除圆角</li><li>删除短边，细长小面，楔形</li><li>忽略边，形成组合面</li><li>忽略面，形成组合域</li><li>忽略边、面，融合端点、边</li></ul><h2 id="3-网格剖分"><a href="#3-网格剖分" class="headerlink" title="3 网格剖分"></a>3 网格剖分</h2><h3 id="3-1-为啥需要网格"><a href="#3-1-为啥需要网格" class="headerlink" title="3.1 为啥需要网格"></a>3.1 为啥需要网格</h3><ul><li>网格元素，有限元（算顶点值）基于几何离散化为小的单位</li><li>有限元网格的目的<ul><li>表征几何</li><li>表征求解域</li></ul></li><li>更多的单元意味着<ul><li>更精确的近似和求解</li><li>更长的求解时间和更多的内存需求</li></ul></li></ul><h3 id="3-2-需要多少个单元"><a href="#3-2-需要多少个单元" class="headerlink" title="3.2 需要多少个单元"></a>3.2 需要多少个单元</h3><ul><li>事先并不清楚</li><li>需要有足够的精细度<ul><li>能充分描述几何</li><li>解析所有结果的梯度</li></ul></li><li>加密（密集程度）网格单元数后，网格会趋向收敛</li></ul><h3 id="3-3-三种网格剖分方法"><a href="#3-3-三种网格剖分方法" class="headerlink" title="3.3 三种网格剖分方法"></a>3.3 三种网格剖分方法</h3><ul><li><p>基于物理场智能剖分网格</p><ul><li>用于流体流动、等离子体和半导体建模</li><li>上述三种物理场都不易收敛，都麻烦</li><li>内置一套算法</li></ul></li><li><p>自适应网格细化</p></li><li><p>重点-<strong>用户控制部分具有完全的控制</strong></p></li></ul><h3 id="3-4-网格特征"><a href="#3-4-网格特征" class="headerlink" title="3.4 网格特征"></a>3.4 网格特征</h3><ul><li>该密则密-物理量在某空间 变化较大 的地方要加密，如边界处，速度降为0，外壁，内壁，表面边界线</li><li>类似于梯度大处的地方，物理量变化大的加密，非物理量数值大的地方</li><li>联合体与装配体的网格区别<ul><li>联合体中，两个域边界相连，是连续的</li><li>装配体中，相连边界的网格不连续，会出错<ul><li>添加一致边界对，能强迫连续</li></ul></li></ul></li></ul><h3 id="3-5-网格操作"><a href="#3-5-网格操作" class="headerlink" title="3.5 网格操作"></a>3.5 网格操作</h3><ul><li>可以对一个几何中的多个域分别设置网格大小<ul><li>手动设值一般只注重最大单元大小</li></ul></li><li>对不同的域，可以分别剖分成三角形网格和四边形网格</li><li>映射的网格非常规整，可设置横纵单元数目</li><li>转换-将四边形网格，添加对角边或中心点，形成三角形</li><li>边界条件中，边界层网格加密<ul><li>提取边，边通常是成对出现，复制边</li><li>构建网格，设置边界处的网格加密</li></ul></li></ul><h3 id="3-6-二维网格"><a href="#3-6-二维网格" class="headerlink" title="3.6 二维网格"></a>3.6 二维网格</h3><ul><li>行波电磁波示例</li><li>添加各种边界条件（散射边界、周期性条件）</li><li>观察结果中的默认数据图，选择主要视角的数据</li><li>离散化选项中 二次（除了顶点数据值，还计算两点的中点，精度高）改成线性单元后</li><li>控制最大单元大小， lamd&#x2F;h1</li><li>参数化扫描h1，参数h1数值能影响结果的准确和精度，对应知识点 3.2</li></ul><h3 id="3-7-三维网格"><a href="#3-7-三维网格" class="headerlink" title="3.7 三维网格"></a>3.7 三维网格</h3><ul><li>如何判断网格好坏<ul><li>右键网格，选择绘制</li><li>网格越绿越好，利用单元过滤可以观察内部网格情况</li><li>右键网格，选择统计信息，也可以观察网格质量状况</li></ul></li><li>扫描网格，类似于二维的映射，非常规整，使用的前提是几何满足，能够规整化</li><li>也能对一面先进行三角形网格，再进行扫描网格</li></ul><h3 id="3-8-网格注意"><a href="#3-8-网格注意" class="headerlink" title="3.8 网格注意"></a>3.8 网格注意</h3><ul><li>二维映射网格需要满足一些基本条件</li><li>如果一开始不满足这些条件，一般需要修改后再映射生成网格</li><li>如一个矩形下端截去一个半圆，需要两条斜线将几何分为三个域，满足基本条件后再进行映射生成</li><li>扫掠网格，即三维中的映射</li><li>边界层网格</li><li>奇异点和圆角处理，奇异点处不能不处理，也不宜过于精细处理</li><li>薄区域，可通过边界条件来表征，不一定需要画出厚度</li><li>高长径比-如弹簧，长度远大于直径，如2.5 中第二条</li><li>斜接触，改小间隙，或小重叠，如2.5中第一条</li><li>分割，复杂几何体，使用扫掠网格，分割出子区域，对重点区域加密</li><li>多余的细节删除，删除不必要的小特征，如Logo、标识</li></ul><h3 id="3-9-软件自学"><a href="#3-9-软件自学" class="headerlink" title="3.9 软件自学"></a>3.9 软件自学</h3><ul><li><p>文件内置有案例库，可以打开模型和PDF文档，可以学习模型复现，案例库可更新</p></li><li><p>帮助文档，在软件安装位置的Multiphysics\doc\pdf</p><ul><li>推荐说明书<ul><li>IntroductionToCOMSOLMultiphysics</li><li>COMSOL_ReferenceManual</li></ul></li><li><a href="https://www.bilibili.com/read/cv5523730/?from=search&spm_id_from=333.337.0.0">将COMSOL的帮助文档设置为中文</a></li></ul></li><li><p><a href="https://cn.comsol.com/">COMSOL官网</a></p><ul><li><a href="https://cn.comsol.com/models">案例下载</a></li><li><a href="https://cn.comsol.com/blogs">博客</a></li><li><a href="https://cn.comsol.com/forum">全球论坛</a></li></ul></li><li><p>网格序列练习</p><ul><li>两方体中间有不规则的球体阵列</li><li>先用四面体画不规则的球体</li><li>再对球体连接的上下两面画三角形剖分</li><li>最后对剩余规整方体进行扫掠</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> COMSOL </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> COMSOL </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>SolidWorks装配体</title>
+      <link href="/2023/08/13/2023.8before/solidworks-zhuang-pei-ti/"/>
+      <url>/2023/08/13/2023.8before/solidworks-zhuang-pei-ti/</url>
+      
+        <content type="html"><![CDATA[<h1 id="SolidWorks装配体"><a href="#SolidWorks装配体" class="headerlink" title="SolidWorks装配体"></a>SolidWorks装配体</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1iw411Z7HZ?p=10&vd_source=3b79726d0bfe11498e42e05d1b77f109">阿奇设计分享</a></li><li><a href="https://ifcski218x.feishu.cn/docx/WbhBdLwxYo06CUx4kCxcFTWbnyb">学习地图</a></li><li><a href="https://ifcski218x.feishu.cn/docx/ZITWdjgx8oMQUpxbmn9cIsDyn6d">练习题</a></li></ul><h2 id="1-装配体"><a href="#1-装配体" class="headerlink" title="1 装配体"></a>1 装配体</h2><h3 id="1-1-装配体基础"><a href="#1-1-装配体基础" class="headerlink" title="1.1 装配体基础"></a>1.1 装配体基础</h3><ul><li><p>装配体是与零件不同的文件类型，由多个零件配合组成</p></li><li><p>界面与零件中类似，在设计树中，零件包含特征应用，装配体中包含各种零件和子装配体</p></li><li><p>装配体插入零件（4种）</p><ul><li>插入已打开的文件</li><li>选择零件文件</li><li>左右分屏时可以拖拽</li><li>Ctrl拖动可以复制零件</li></ul></li><li><p>切换视窗</p><ul><li>窗口选择</li><li>Ctrl TAB</li></ul></li><li><p>ATTENTION:第一个零件要手动打开文件插入，确保此零件和装配体基准面重合</p></li><li><p>零件左键拖动，右键旋转</p></li></ul><h3 id="1-2-配合"><a href="#1-2-配合" class="headerlink" title="1.2 配合"></a>1.2 配合</h3><ul><li>选择两零件要参考的，赋予关系，连续添加</li><li>对于一零件，可编辑零件修改</li></ul><h2 id="2-标准配合"><a href="#2-标准配合" class="headerlink" title="2 标准配合"></a>2 标准配合</h2><h3 id="2-1-装配体中编辑零件"><a href="#2-1-装配体中编辑零件" class="headerlink" title="2.1 装配体中编辑零件"></a>2.1 装配体中编辑零件</h3><ul><li>对零件可以再编辑</li></ul><h3 id="2-2-装配体中新建零件"><a href="#2-2-装配体中新建零件" class="headerlink" title="2.2 装配体中新建零件"></a>2.2 装配体中新建零件</h3><ul><li>插入零件时，可以直接新建零件，之后，进入编辑零件模式编辑草图，完成特征</li><li>零件创造后，可保存在装配体内，也可保存为引用链接的新文件</li></ul><h3 id="2-3-配合"><a href="#2-3-配合" class="headerlink" title="2.3 配合"></a>2.3 配合</h3><p>对两零件间的面设置配合关系</p><ul><li>重合-可选择基准面</li><li>平行</li><li>垂直</li><li>距离设置与角度设置</li><li>同轴心<ul><li>对两个圆孔 设定同轴心，孔口对齐</li><li>圆柱的同轴心还可以，与边线，与基准轴对齐</li></ul></li><li>锁定</li><li>(f)固定与浮动</li></ul><p>选择过滤器-空白处右键可以调用，仅能选择指定类型的特征使用</p><h2 id="3-高级配合与机械配合"><a href="#3-高级配合与机械配合" class="headerlink" title="3 高级配合与机械配合"></a>3 高级配合与机械配合</h2><h3 id="3-1-高级配合"><a href="#3-1-高级配合" class="headerlink" title="3.1 高级配合"></a>3.1 高级配合</h3><ul><li>宽度：设置两对面距离相等 &#x2F; 用于实现居中</li><li>距离：设定两面的距离限制，角度限制，最大最小距离范围</li><li>对称：</li></ul><h3 id="3-2-机械配合"><a href="#3-2-机械配合" class="headerlink" title="3.2 机械配合"></a>3.2 机械配合</h3><ul><li>凸轮：先有凸轮零件，设置凸轮与凸轮推杆</li><li>槽口：槽口表面与圆柱面</li></ul><h3 id="3-3-快捷菜单"><a href="#3-3-快捷菜单" class="headerlink" title="3.3 快捷菜单"></a>3.3 快捷菜单</h3><h3 id="3-4-隐藏，透明，压缩"><a href="#3-4-隐藏，透明，压缩" class="headerlink" title="3.4 隐藏，透明，压缩"></a>3.4 隐藏，透明，压缩</h3><ul><li>隐藏：Tab快捷键</li><li>透明：设置透明度，视角转移至无后置物时可选取</li><li>压缩：零件消失，该状态下配合关系也缺失，可复原</li></ul><h2 id="4-附加课"><a href="#4-附加课" class="headerlink" title="4 附加课"></a>4 附加课</h2><h3 id="4-1-装配体内修改模型"><a href="#4-1-装配体内修改模型" class="headerlink" title="4.1 装配体内修改模型"></a>4.1 装配体内修改模型</h3><ul><li>注意装配体、各零件的关系</li><li>装配体中可以用草图切除零件，但此特征属于装配体，对零件源无影响</li><li>修改模型要选择零件编辑，通过修改零件，来修改装配体</li></ul><h3 id="4-2-配合编辑"><a href="#4-2-配合编辑" class="headerlink" title="4.2 配合编辑"></a>4.2 配合编辑</h3><ul><li>设计树中，通过 各零件的配合关系 或 配合总表 可以编辑</li></ul><h3 id="4-3-配合报错解决方法"><a href="#4-3-配合报错解决方法" class="headerlink" title="4.3 配合报错解决方法"></a>4.3 配合报错解决方法</h3><ul><li>检查错误 要在设计树从上往下检查</li><li>进入配合详情页修改错误</li></ul><h3 id="4-4-线性阵列与镜像"><a href="#4-4-线性阵列与镜像" class="headerlink" title="4.4 线性阵列与镜像"></a>4.4 线性阵列与镜像</h3><ul><li>新建零件，绘制后会默认带有在位配合，即固定于一位置</li><li>进入阵列编辑，选择复制的零部件，可引用边线或面来设置方向及参数</li><li>选择两零件的元素，可快捷添加配合</li><li>镜像-进入下一步后可预览</li></ul><h3 id="4-5-零件外观-上色"><a href="#4-5-零件外观-上色" class="headerlink" title="4.5  零件外观-上色"></a>4.5  零件外观-上色</h3><ul><li>选择最下方的零件编辑对零件源有效</li><li>Body-编辑实体</li><li>点击零件上的圆角特征面，可以编辑圆角面的外观</li><li>最上方的零件属于装配体属性，只对所选零件个体有效</li><li>外观编辑窗口还可以选择编辑面</li><li>上方属性会覆盖下方属性</li></ul><h3 id="4-6-版本问题相关"><a href="#4-6-版本问题相关" class="headerlink" title="4.6 版本问题相关"></a>4.6 版本问题相关</h3><ul><li>高版本保存的文件，低版本不能打开，解决方法，另存X_T，或step格式，低版本可打开但会缺失设计树步骤</li><li>建议小版本使用SP5小版本</li></ul><h3 id="4-7-打包功能"><a href="#4-7-打包功能" class="headerlink" title="4.7 打包功能"></a>4.7 打包功能</h3><ul><li>Pack and Go,即素材全打包，生成工程文件，包含装配体引用各零件的链接及零件的源文件</li><li>也可用作存档打包材料</li><li>建议添加后缀，附加说明，也避免重名文件</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> SolidWorks </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> SolidWorks </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>SolidWorks特征命令</title>
+      <link href="/2023/08/01/2023.8before/solidworks-te-zheng-ming-ling/"/>
+      <url>/2023/08/01/2023.8before/solidworks-te-zheng-ming-ling/</url>
+      
+        <content type="html"><![CDATA[<h1 id="SolidWorks特征命令"><a href="#SolidWorks特征命令" class="headerlink" title="SolidWorks特征命令"></a>SolidWorks特征命令</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1iw411Z7HZ?p=10&vd_source=3b79726d0bfe11498e42e05d1b77f109">阿奇设计分享</a></li><li><a href="https://ifcski218x.feishu.cn/docx/WbhBdLwxYo06CUx4kCxcFTWbnyb">学习地图</a></li><li><a href="https://ifcski218x.feishu.cn/docx/ZITWdjgx8oMQUpxbmn9cIsDyn6d">练习题</a></li></ul><h2 id="1-特征成型与设计树"><a href="#1-特征成型与设计树" class="headerlink" title="1 特征成型与设计树"></a>1 特征成型与设计树</h2><h3 id="1-1-特征成型"><a href="#1-1-特征成型" class="headerlink" title="1.1 特征成型"></a>1.1 特征成型</h3><ul><li>拉伸基体-水平拉伸，如桌子</li><li>旋转基体-沿中心轴线旋转获得实体，如水杯，甜甜圈</li><li>扫描-将草图轮廓沿另一线性草图，扫描，如弹簧，按不同的角度|路径复制</li><li>放样凸台-上大小下的储物箱</li><li>拉伸切除-与拉伸相反，挖洞</li><li>旋转切除-切面围一圈再切除</li><li>异型孔向导-实体上添加各种标准规格的预设孔</li></ul><h3 id="1-2-特征成型-拉伸，切除，扫描，旋转"><a href="#1-2-特征成型-拉伸，切除，扫描，旋转" class="headerlink" title="1.2 特征成型-拉伸，切除，扫描，旋转"></a>1.2 特征成型-拉伸，切除，扫描，旋转</h3><h4 id="1-2-1-拉伸凸台"><a href="#1-2-1-拉伸凸台" class="headerlink" title="1.2.1 拉伸凸台"></a>1.2.1 拉伸凸台</h4><ul><li>设置从何处开始<ul><li>基准面</li><li>等距-距离基准面</li></ul></li><li>给定拉伸方式，选择参考点、面（多个）方向及数值，薄壁特征</li></ul><h3 id="1-2-2-拉伸切除"><a href="#1-2-2-拉伸切除" class="headerlink" title="1.2.2 拉伸切除"></a>1.2.2 拉伸切除</h3><ul><li>与拉伸凸台相反，挖洞</li></ul><h3 id="1-2-3-基准面"><a href="#1-2-3-基准面" class="headerlink" title="1.2.3 基准面"></a>1.2.3 基准面</h3><ul><li>利用参考几何体设置新的基准面</li><li>基准面设置隐藏或显示</li><li>一键隐藏所有类型</li></ul><h3 id="1-2-4-扫描"><a href="#1-2-4-扫描" class="headerlink" title="1.2.4 扫描"></a>1.2.4 扫描</h3><ul><li>基准面上 圆形草图，沿着折线，类似管道</li><li>弹簧制作：圆形草图使用曲线中的螺旋线，再利用扫描的圆形轮廓</li></ul><h3 id="1-2-5-旋转"><a href="#1-2-5-旋转" class="headerlink" title="1.2.5 旋转"></a>1.2.5 旋转</h3><ul><li>绘制封闭曲线，设置构造线</li><li>自动匹配旋转，得到水杯</li><li>绘制螺丝实体后，添加螺纹-插入-注解-装饰螺纹线</li></ul><h3 id="1-2-6-旋转切除"><a href="#1-2-6-旋转切除" class="headerlink" title="1.2.6 旋转切除"></a>1.2.6 旋转切除</h3><ul><li>对于一正方体，在中心位置挖出一个M4螺丝沉头孔</li><li><strong>参考基准面的使用能极大地辅助绘图建模</strong></li><li>参考基准面不超过三参考确定，参考选择-面（基准面、特征平面），线（草图直线，特征边线，基准轴），点（特征端点，草图点）均可</li><li>三点可以确定一平面</li></ul><h3 id="1-2-7-圆角与倒角"><a href="#1-2-7-圆角与倒角" class="headerlink" title="1.2.7 圆角与倒角"></a>1.2.7 圆角与倒角</h3><ul><li>设置圆角类型-主要用固定大小圆角 1</li><li>选择需圆角化的 边线或面</li></ul><h2 id="2-附加课"><a href="#2-附加课" class="headerlink" title="2 附加课"></a>2 附加课</h2><h3 id="2-1-草图绘制面"><a href="#2-1-草图绘制面" class="headerlink" title="2.1 草图绘制面"></a>2.1 草图绘制面</h3><ul><li>最基础的，在三基准面和实体平面上可以进行草图绘制</li><li>非平面上不可直接绘制</li><li>若圆柱实体，要开槽，可利用参考基准面进行挖洞</li><li>3d草图使用很少</li></ul><h3 id="2-2-实线与构造线"><a href="#2-2-实线与构造线" class="headerlink" title="2.2 实线与构造线"></a>2.2 实线与构造线</h3><ul><li>使用旋转，构造线作旋转轴后，会自动在构造线补实形成闭环</li></ul><h3 id="2-3-快捷键"><a href="#2-3-快捷键" class="headerlink" title="2.3 快捷键"></a>2.3 快捷键</h3><ul><li>Alt+C 构造线</li><li>Ctrl+B 重建模型</li></ul><h3 id="2-4-视图工具栏"><a href="#2-4-视图工具栏" class="headerlink" title="2.4 视图工具栏"></a>2.4 视图工具栏</h3><ul><li>剖面视图-选择需要的剖面基准面，调整位移</li><li>视图定向</li><li>正视于 Ctrl 8</li><li>显示类型<ul><li>上色</li><li>隐藏线可见</li><li>线架图</li></ul></li><li>隐藏项目<ul><li>尺寸</li><li>几何关系</li></ul></li></ul><h2 id="3-特征成型"><a href="#3-特征成型" class="headerlink" title="3 特征成型"></a>3 特征成型</h2><h3 id="3-1-异型孔向导"><a href="#3-1-异型孔向导" class="headerlink" title="3.1 异型孔向导"></a>3.1 异型孔向导</h3><ul><li>点击向导，选择孔类型标准，再设定画孔表面及孔的位置</li><li>包含位置草图、孔型草图、螺纹线</li><li>添加孔使用此功能</li></ul><h3 id="3-2-线性阵列"><a href="#3-2-线性阵列" class="headerlink" title="3.2 线性阵列"></a>3.2 线性阵列</h3><ul><li>与草图中类似，将特征或实体进行阵列复制</li><li>常用：线性、圆周阵列、镜向</li></ul><h3 id="3-3-圆周阵列"><a href="#3-3-圆周阵列" class="headerlink" title="3.3 圆周阵列"></a>3.3 圆周阵列</h3><ul><li>选择一基准轴，可设置参考基准轴</li><li>选择实体，圆周阵列分布</li></ul><h3 id="3-4-镜向"><a href="#3-4-镜向" class="headerlink" title="3.4 镜向"></a>3.4 镜向</h3><p>注意 实体与特征的概念区分</p><ul><li>实体：由草图经过特征化得到的特征集合体</li><li>特征：例如一平台上的开孔特征</li></ul><p>特征镜向与实体镜向</p><ul><li>特征镜向：对于一个实体上，可以执行特征镜向</li><li>实体镜向：不相关联的实体间是独立的</li><li>选择镜向面参考面，再选择镜向特征\面\实体</li></ul><h2 id="4-附加课2-草图封闭轮廓与所选区域"><a href="#4-附加课2-草图封闭轮廓与所选区域" class="headerlink" title="4 附加课2-草图封闭轮廓与所选区域"></a>4 附加课2-草图封闭轮廓与所选区域</h2><h3 id="4-1-草图封闭轮廓"><a href="#4-1-草图封闭轮廓" class="headerlink" title="4.1 草图封闭轮廓"></a>4.1 草图封闭轮廓</h3><ul><li>草图开环会默认生成薄壁特征</li><li>旋转中使用构造线，构造线将作为旋转轴，软件会自动添加实线，形成轮廓</li><li>所选轮廓的使用：一个草图中，可以选择性的对所选轮廓进行施加特征</li></ul><h3 id="4-2-厚度为0的报错"><a href="#4-2-厚度为0的报错" class="headerlink" title="4.2 厚度为0的报错"></a>4.2 厚度为0的报错</h3><ul><li>如要对一个长方体一顶端进行相切圆切除，会出现报错，因为相切处厚度为0，实体在此处，处于一个断裂为二的临界状态</li><li>若相切圆对两端相切，进行切除，将得到两个实体。</li></ul><h2 id="5-特征实战-3D打印手机支架"><a href="#5-特征实战-3D打印手机支架" class="headerlink" title="5 特征实战-3D打印手机支架"></a>5 特征实战-3D打印手机支架</h2><ul><li>新功能：草图文本功能，样本曲线，草图图片，材质设置与质量属性</li><li>草图文本：Text 但位置只可用鼠标移动</li><li>草图图片：导入png图片，设置透明度，方便利用样本曲线（画笔工具）进行手动绘制</li><li>材质设置与属性测量</li></ul><h2 id="6-附加课3-特征修改与报错处理"><a href="#6-附加课3-特征修改与报错处理" class="headerlink" title="6 附加课3-特征修改与报错处理"></a>6 附加课3-特征修改与报错处理</h2><h3 id="6-1-特征修改"><a href="#6-1-特征修改" class="headerlink" title="6.1 特征修改"></a>6.1 特征修改</h3><ul><li>理解设计树及视图中的对应关系，草图与特征的结构即可</li></ul><h3 id="6-2-报错处理"><a href="#6-2-报错处理" class="headerlink" title="6.2 报错处理"></a>6.2 报错处理</h3><ul><li>对于叹号报错，可以通过再编辑里找问题所在</li></ul><h2 id="7-附加课4-特征父子关系与显示隐藏按钮"><a href="#7-附加课4-特征父子关系与显示隐藏按钮" class="headerlink" title="7 附加课4-特征父子关系与显示隐藏按钮"></a>7 附加课4-特征父子关系与显示隐藏按钮</h2><h3 id="7-1-父子关系"><a href="#7-1-父子关系" class="headerlink" title="7.1 父子关系"></a>7.1 父子关系</h3><ul><li>如一长方体实体A，选择其一面绘制另一实体B，A对B将会有平面约束及可能的尺寸约束，构成父子关系</li><li>如要删除父子关系，将尺寸约束删除后，编辑修改实体B的草图平面为其他基准面即可</li></ul><h3 id="7-2-显示隐藏常用按钮"><a href="#7-2-显示隐藏常用按钮" class="headerlink" title="7.2 显示隐藏常用按钮"></a>7.2 显示隐藏常用按钮</h3><ul><li>三视基准面：点击基准面，Ctrl拖动可以快速绘制参考基准面</li><li>主要手动控制基准面，基准轴</li></ul><h3 id="7-3-中性文件"><a href="#7-3-中性文件" class="headerlink" title="7.3 中性文件"></a>7.3 中性文件</h3><ul><li>中性格式： .stp ; .igs ; .x_t</li><li>.stp最通用</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> SolidWorks </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> SolidWorks </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>SolidWorks草图绘制</title>
+      <link href="/2023/07/07/2023.8before/solidworks-cao-tu-hui-zhi/"/>
+      <url>/2023/07/07/2023.8before/solidworks-cao-tu-hui-zhi/</url>
+      
+        <content type="html"><![CDATA[<h1 id="SolidWorks草图"><a href="#SolidWorks草图" class="headerlink" title="SolidWorks草图"></a>SolidWorks草图</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1iw411Z7HZ?p=1&vd_source=3b79726d0bfe11498e42e05d1b77f109">阿奇设计分享</a></li><li><a href="https://ifcski218x.feishu.cn/docx/WbhBdLwxYo06CUx4kCxcFTWbnyb">学习地图</a></li><li>软件界面及属性设置可参考C4D界面属性</li></ul><h2 id="1-软件界面"><a href="#1-软件界面" class="headerlink" title="1. 软件界面"></a>1. 软件界面</h2><h3 id="1-1-三种文件类型"><a href="#1-1-三种文件类型" class="headerlink" title="1.1 三种文件类型"></a>1.1 三种文件类型</h3><ul><li>零件</li><li>装配体</li><li>工程图</li></ul><h3 id="1-2-零件绘制"><a href="#1-2-零件绘制" class="headerlink" title="1.2 零件绘制"></a>1.2 零件绘制</h3><ul><li>草图<ul><li>选择基准面</li><li>绘制形状</li><li>智能尺寸编辑属性</li></ul></li><li>特征<ul><li>利用草图构建实体特征</li><li>视角转变：中键滚轮、右键、视图定向</li><li>正视于Ctrl+8</li></ul></li></ul><h2 id="2-草图绘制"><a href="#2-草图绘制" class="headerlink" title="2. 草图绘制"></a>2. 草图绘制</h2><h3 id="2-1-直线"><a href="#2-1-直线" class="headerlink" title="2.1 直线"></a>2.1 直线</h3><ul><li>设置为构造线,即辅助线,参考线,用于帮助绘图建模等</li></ul><h3 id="2-2-矩形"><a href="#2-2-矩形" class="headerlink" title="2.2 矩形"></a>2.2 矩形</h3><ul><li>利用直线作为构造线,可以确定矩形距离原点的位置</li></ul><h3 id="2-3-圆"><a href="#2-3-圆" class="headerlink" title="2.3 圆"></a>2.3 圆</h3><ul><li>中心圆</li><li>周边圆-三点确定一圆</li></ul><h3 id="2-4-槽"><a href="#2-4-槽" class="headerlink" title="2.4 槽"></a>2.4 槽</h3><ul><li>1点槽方向</li><li>2点槽心距</li><li>3点槽口大小</li></ul><h3 id="2-5-圆弧"><a href="#2-5-圆弧" class="headerlink" title="2.5 圆弧"></a>2.5 圆弧</h3><ul><li>圆弧</li><li>切线弧-必须选择从已有线的端点开始</li></ul><h3 id="2-6-圆角"><a href="#2-6-圆角" class="headerlink" title="2.6 圆角"></a>2.6 圆角</h3><ul><li>圆角-选择矩形的两边或者矩形的某一顶点,可预览圆角,设置圆角半径</li><li>倒角</li></ul><h3 id="2-7-点"><a href="#2-7-点" class="headerlink" title="2.7 点"></a>2.7 点</h3><ul><li>点是最小的几何特征</li><li>可以用作圆周列阵的中心点</li></ul><h2 id="3-草图几何关系与草图编辑"><a href="#3-草图几何关系与草图编辑" class="headerlink" title="3. 草图几何关系与草图编辑"></a>3. 草图几何关系与草图编辑</h2><h3 id="3-1-几何关系"><a href="#3-1-几何关系" class="headerlink" title="3.1 几何关系"></a>3.1 几何关系</h3><ul><li>重合,中点,相切,平行,相等,共线,对称</li><li>常用<ul><li>平行</li><li>相切</li><li>对称</li></ul></li></ul><h3 id="3-2-裁剪实体"><a href="#3-2-裁剪实体" class="headerlink" title="3.2 裁剪实体"></a>3.2 裁剪实体</h3><ul><li>五种方法中最常用强劲裁剪和裁剪到最近端</li><li><strong>强劲裁剪</strong>-Shift反向延伸</li><li>裁剪到最近端-点击某线段,自动剪至最近端</li></ul><h3 id="3-3-转换实体引用"><a href="#3-3-转换实体引用" class="headerlink" title="3.3 转换实体引用"></a>3.3 转换实体引用</h3><ul><li>对于圆柱凸台，可选择一面中的边线草图来复制引用到另一平面上</li><li>附加课理解-先选中目标平面，进入草图绘图状态</li><li>之后引用需要复制的面</li><li><strong>草图绘制进入绘图基准面，点击引用，选择复制面</strong></li></ul><h3 id="3-4-等距实体"><a href="#3-4-等距实体" class="headerlink" title="3.4 等距实体"></a>3.4 等距实体</h3><ul><li>实体：实体特征的边线或者草图的元素（圆柱体面的边线或者草图圆或线元素）</li></ul><h2 id="4-草图镜像与阵列"><a href="#4-草图镜像与阵列" class="headerlink" title="4. 草图镜像与阵列"></a>4. 草图镜像与阵列</h2><h3 id="4-1-镜像"><a href="#4-1-镜像" class="headerlink" title="4.1 镜像"></a>4.1 镜像</h3><ul><li>镜像实体</li><li>镜像轴（必须是直线）</li></ul><h3 id="4-2-阵列"><a href="#4-2-阵列" class="headerlink" title="4.2 阵列"></a>4.2 阵列</h3><ul><li>设置一实体完成阵列型复制</li></ul><h3 id="4-3-实体修改"><a href="#4-3-实体修改" class="headerlink" title="4.3 实体修改"></a>4.3 实体修改</h3><ul><li>移动，复制，缩放</li></ul><h2 id="5-附加课"><a href="#5-附加课" class="headerlink" title="5.附加课"></a>5.附加课</h2><h3 id="5-1模板"><a href="#5-1模板" class="headerlink" title="5.1模板"></a>5.1模板</h3><ul><li>模板即设置绘图标准，一般为GB，可自定义字体</li><li>保存模板，修改后空文件存为Part Template (.prtdot)</li><li>设置默认模板，装配体同理</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> SolidWorks </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> SolidWorks </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Matlab之进阶绘图</title>
+      <link href="/2023/07/05/2023.8before/matlab-jin-jie-hui-tu/"/>
+      <url>/2023/07/05/2023.8before/matlab-jin-jie-hui-tu/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Matlab郭彦甫教程之进阶绘图"><a href="#Matlab郭彦甫教程之进阶绘图" class="headerlink" title="Matlab郭彦甫教程之进阶绘图"></a>Matlab郭彦甫教程之进阶绘图</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV1GJ41137UH/?p=6&spm_id_from=333.788.top_right_bar_window_history.content.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">台大郭彦甫教学</a></li><li><a href="https://blog.csdn.net/ncepu_Chen/article/details/103099895">笔记1</a></li><li><a href="https://www.cnblogs.com/find-sth-interesting/articles/16174348.html">笔记2</a></li></ul><h2 id="1-Advanced-2D-plots"><a href="#1-Advanced-2D-plots" class="headerlink" title="1. Advanced 2D plots"></a>1. Advanced 2D plots</h2><h3 id="1-1折线图"><a href="#1-1折线图" class="headerlink" title="1.1折线图"></a>1.1折线图</h3><h4 id="1-1-1Log"><a href="#1-1-1Log" class="headerlink" title="1.1.1Log"></a>1.1.1Log</h4><ul><li>loglog()-x轴和y轴都取对数坐标    </li><li>semilogx()-x轴取对数坐标,y轴取线性坐标</li><li>semilogy()-x轴取线性坐标,y轴取对数坐标</li></ul><pre class="line-numbers language-log" data-language="log"><code class="language-log">x <span class="token operator">=</span> logspace<span class="token operator">(</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">100</span><span class="token operator">)</span><span class="token operator">;</span> y <span class="token operator">=</span> x<span class="token punctuation">.</span><span class="token operator">^</span><span class="token number">2</span><span class="token operator">;</span>subplot<span class="token operator">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">1</span><span class="token operator">)</span><span class="token operator">;</span>plot<span class="token operator">(</span>x<span class="token punctuation">,</span>y<span class="token operator">)</span><span class="token operator">;</span>title<span class="token operator">(</span><span class="token string">'Plot'</span><span class="token operator">)</span><span class="token operator">;</span>subplot<span class="token operator">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token operator">)</span><span class="token operator">;</span>semilogx<span class="token operator">(</span>x<span class="token punctuation">,</span>y<span class="token operator">)</span><span class="token operator">;</span>title<span class="token operator">(</span><span class="token string">'Semilogx'</span><span class="token operator">)</span><span class="token operator">;</span>subplot<span class="token operator">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token operator">)</span><span class="token operator">;</span>semilogy<span class="token operator">(</span>x<span class="token punctuation">,</span>y<span class="token operator">)</span><span class="token operator">;</span>title<span class="token operator">(</span><span class="token string">'Semilogy'</span><span class="token operator">)</span><span class="token operator">;</span>subplot<span class="token operator">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token operator">)</span><span class="token operator">;</span>loglog<span class="token operator">(</span>x<span class="token punctuation">,</span> y<span class="token operator">)</span><span class="token operator">;</span>title<span class="token operator">(</span><span class="token string">'Loglog'</span><span class="token operator">)</span><span class="token operator">;</span> set<span class="token operator">(</span>gca<span class="token punctuation">,</span> <span class="token string">'XGrid'</span><span class="token punctuation">,</span><span class="token string">'on'</span><span class="token operator">)</span><span class="token operator">;</span> <span class="token operator">/</span><span class="token operator">/</span>设置X轴上的grid<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><h4 id="1-1-2双y轴图"><a href="#1-1-2双y轴图" class="headerlink" title="1.1.2双y轴图"></a>1.1.2双y轴图</h4><ul><li>plotyy()-带有两套y坐标轴的线性坐标系（同一个图例中有两个刻度尺寸的y坐标轴）<pre class="line-numbers language-plotyy" data-language="plotyy"><code class="language-plotyy">x &#x3D; 0:0.01:20;y1 &#x3D; 200*exp(-0.05*x).*sin(x);y2 &#x3D; 0.8*exp(-0.5*x).*sin(10*x);[AX,H1,H2] &#x3D; plotyy(x,y1,x,y2); &#x2F;&#x2F;返回[ax,hlines1,hlines2]&#x2F;&#x2F;ax为一个向量,保存两个坐标系对象的句柄.&#x2F;&#x2F;hlines1和hlines2分别为两个图线的句柄.set(get(AX(1),&#39;Ylabel&#39;),&#39;String&#39;,&#39;Left Y-axis&#39;) &#x2F;&#x2F;获取Axis(1)中的Y刻度，设置字串set(get(AX(2),&#39;Ylabel&#39;),&#39;String&#39;,&#39;Right Y-axis&#39;)title(&#39;Labeling plotyy&#39;);set(H1,&#39;LineStyle&#39;,&#39;--&#39;); set(H2,&#39;LineStyle&#39;,&#39;:&#39;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul><h4 id="1-1-3极坐标系"><a href="#1-1-3极坐标系" class="headerlink" title="1.1.3极坐标系"></a>1.1.3极坐标系</h4><ul><li>ploar()<pre class="line-numbers language-none"><code class="language-none">% 螺旋线x &#x3D; 1:100; theta &#x3D; x&#x2F;10; r &#x3D; log10(x);subplot(1,4,1); polar(theta,r);% 花瓣theta &#x3D; linspace(0, 2*pi); r &#x3D; cos(4*theta);subplot(1,4,2); polar(theta, r);% 五边形theta &#x3D; linspace(0, 2*pi, 6); r &#x3D; ones(1,length(theta));subplot(1,4,3); polar(theta,r);% 心形线theta &#x3D; linspace(0, 2*pi); r &#x3D; 1-sin(theta);subplot(1,4,4); polar(theta , r);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li></ul><h3 id="1-2统计图表"><a href="#1-2统计图表" class="headerlink" title="1.2统计图表"></a>1.2统计图表</h3><h4 id="1-2-1直方图"><a href="#1-2-1直方图" class="headerlink" title="1.2.1直方图"></a>1.2.1直方图</h4><ul><li>hist(x,nbins)<pre class="line-numbers language-hist" data-language="hist"><code class="language-hist">&#x2F;&#x2F;x表示原始数据&#x2F;&#x2F;nbins表示分组的个数x &#x3D; randn(1,1000);subplot(2,1,1);hist(x,10);title(&#39;Bins &#x3D; 10&#39;);subplot(2,1,2);hist(x,50);title(&#39;Bins &#x3D; 50&#39;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16502991503527.png?200x"></li></ul><h4 id="1-2-2柱状图"><a href="#1-2-2柱状图" class="headerlink" title="1.2.2柱状图"></a>1.2.2柱状图</h4><ul><li>bar chats：hist表示数据整体频率分布，bar表示数据个体的分布<pre class="line-numbers language-bar" data-language="bar"><code class="language-bar">x &#x3D; [1 2 5 4 8]; y &#x3D; [x;1:5];subplot(1,3,1); bar(x); title(&#39;A bargraph of vector x&#39;);subplot(1,3,2); bar(y); title(&#39;A bargraph of vector y&#39;);subplot(1,3,3); bar3(y); title(&#39;A 3D bargraph&#39;);&#x2F;&#x2F;bar()和bar3()分别绘制二维和三维直方图<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503398248516.png?200x"></li><li>堆栈型和纵排型bar<pre class="line-numbers language-Stacked" data-language="Stacked"><div class="caption"><span>and Horizontal Bar Charts</span></div><code class="language-Stacked">x &#x3D; [1 2 5 4 8];y &#x3D; [x;1:5];subplot(1,2,1)barh(y);title(&#39;Horizontal&#39;);subplot(1,2,2)bar(y,&#39;stacked&#39;);title(&#39;Stacked&#39;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503401336127.png"></li></ul><h4 id="1-2-3饼图"><a href="#1-2-3饼图" class="headerlink" title="1.2.3饼图"></a>1.2.3饼图</h4><ul><li>Pie Charts<pre class="line-numbers language-pie" data-language="pie"><code class="language-pie">a &#x3D; [10 5 20 30];subplot(1,3,1); pie(a);subplot(1,3,2); pie(a, [0,0,0,1]);subplot(1,3,3); pie3(a, [0,0,0,1]);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503558106288.png"></li></ul><h4 id="1-2-4阶梯图与针状图"><a href="#1-2-4阶梯图与针状图" class="headerlink" title="1.2.4阶梯图与针状图"></a>1.2.4阶梯图与针状图</h4><ul><li>stairs()和stem()表示离散数字序列<pre class="line-numbers language-Stairs" data-language="Stairs"><div class="caption"><span>and Stem</span></div><code class="language-Stairs">x &#x3D; linspace(0, 4*pi, 40); y &#x3D; sin(x);subplot(1,2,1); stairs(y);subplot(1,2,2); stem(y);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503576007208.png"></li></ul><h4 id="1-2-5箱线图和含误差条的线图"><a href="#1-2-5箱线图和含误差条的线图" class="headerlink" title="1.2.5箱线图和含误差条的线图"></a>1.2.5箱线图和含误差条的线图</h4><ul><li>boxplot是一种用于显示一组数据分散情况的统计图，多用于多组数据的比较。<br>在每个箱子上，中心标记表示中位数，箱子的底边和顶边分别表示第 25 个和 75 个百分位数。虚线会延伸到不是离群值（可以理解为距离数据平均值非常远的数值，统计时应当舍去）的最远端数据点，离群值会使用 ‘+’ 标记符号单独绘制。</li></ul><pre class="line-numbers language-box" data-language="box"><code class="language-box">load carsmall %加载样本数据boxplot(MPG, Origin);  %创建一个表示每加仑英里数 (MPG) 测量值的箱线图，按测量的原产国 (Origin) 分组<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503661374105.jpg"></p><ul><li>errorbar()<pre class="line-numbers language-errorbar" data-language="errorbar"><code class="language-errorbar">x&#x3D;0:pi&#x2F;10:pi; y&#x3D;sin(x); e&#x3D;std(y)*ones(size(x));%size(x)返回一个行向量（[1 11]），ones(size(x))得到该维度(1行11列)的全为1的行向量%std(y)返回y的标准差，e表示关于y的标准差矩阵，其大小由x的尺寸所决定。errorbar(x,y,e) %errorbar(x,y,e) 绘制 y 对 x 的图，并在每个数据点处绘制一个垂直误差条,%e 表示每个数据点上方和下方误差条的长度<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503674806741.png"></li></ul><pre class="line-numbers language-none"><code class="language-none">t &#x3D;(1:2:15).*pi&#x2F;8;  x &#x3D; sin(t);  y &#x3D; cos(t); %plot()是沿数据点连线，fill()沿数据点连接并填充fill(x,y,&#39;r&#39;);    %依据 x 和 y 中的数据创建填充的图形，填充封闭图形为红色axis square off;  %关闭直角坐标系text(0,0,&#39;STOP&#39;,&#39;Color&#39;, &#39;w&#39;, &#39;FontSize&#39;, 80, ...&#39;FontWeight&#39;,&#39;bold&#39;, &#39;HorizontalAlignment&#39;, &#39;center&#39;);%设置文字属性t&#x3D;(0:2:8).*pi&#x2F;4;x&#x3D;sin(t);y&#x3D;cos(t);fill(x,y,&#39;y&#39;,&#39;LineWidth&#39;,6); axis square off;  text(0,0,&#39;WAIT&#39;,&#39;Color&#39;, &#39;k&#39;, &#39;FontSize&#39;, 80, ...&#39;FontWeight&#39;,&#39;bold&#39;, &#39;HorizontalAlignment&#39;, &#39;center&#39;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16503688413917.png"></p><h2 id="2-color-space"><a href="#2-color-space" class="headerlink" title="2. color space"></a>2. color space</h2><h3 id="2-1颜色空间应用"><a href="#2-1颜色空间应用" class="headerlink" title="2.1颜色空间应用"></a>2.1颜色空间应用</h3><pre class="line-numbers language-none"><code class="language-none">G &#x3D; [46 38 29 24 13];  S &#x3D; [29 27 17 26 8]; B &#x3D; [29 23 19 32 7];  h &#x3D; bar(1:5, [G&#39; S&#39; B&#39;],&#39;FaceColor&#39;,&#39;flat&#39;); %&#39;表示转置%bar(x,y) 在 x指定的位置绘制条形，y是5*3的矩阵，得到的h是5组每组3条的bar图xticklabels(&#123;&#39;USA&#39;,&#39;CHN&#39;,&#39;GBR&#39;,&#39;RUS&#39;,&#39;KOR&#39;&#125;);  %经查找，xticklabels可以直接对多个xticklabel进行设置。set(gca,&#39;FontSize&#39;,20);title(&#39;Medal count for top 5 countries in 2012 Olympics&#39;); ylabel(&#39;Number of medals&#39;);  xlabel(&#39;Country&#39;); legend(&#39;Gold&#39;, &#39;Silver&#39;, &#39;Bronze&#39;)%以上得到未更改条形颜色的条形图set(h(1),&#39;FaceColor&#39;,&#39;#CCCC00&#39;);  %查百度知道的，h是一个1*3的bar阵列，每个bar里面有五组数据，此处设置第一个bar的颜色为gold，以此类推set(h(2),&#39;FaceColor&#39;,&#39;#CCCCCC&#39;); set(h(3),&#39;FaceColor&#39;,&#39;#996666&#39;); <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com//%7Byear%7D/%7Bmon%7D/%7Bday%7D/%7Bfilename%7D%7B.suffix%7D%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220421154437.png"></p><h3 id="2-2-imagesc-（图像数据可视化）"><a href="#2-2-imagesc-（图像数据可视化）" class="headerlink" title="2.2 imagesc() （图像数据可视化）"></a>2.2 imagesc() （图像数据可视化）</h3><pre class="line-numbers language-none"><code class="language-none">[x, y] &#x3D; meshgrid(-3:.2:3,-3:.2:3); %对于 [X, Y]&#x3D;(x, y), X和Y 是 y*x 规格的矩阵，%其中X的每一行是x的副本，Y中的每一列是y的副本z &#x3D; x.^2 + x.*y + y.^2;  subplot(1, 2, 1)surf( x, y, z);  %创建一个三维曲面图box on; set(gca,&#39;FontSize&#39;, 16);  zlabel(&#39;z&#39;); xlim([-4 4]);  xlabel(&#39;x&#39;);  ylim([-4 4]);  ylabel(&#39;y&#39;); subplot(1, 2, 2)imagesc(z); %显示矩阵数据的图像，其中 z 中的最小值映射到颜色图中的第一种颜色，最大值映射到最后一种颜色。axis square; xlabel(&#39;x&#39;); ylabel(&#39;y&#39;)colorbar; %显示颜色栏<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16504593313403.png"><br><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16504597577802.png"></p><ul><li>使用colorbar命令可以在生成的二维图上增加颜色与高度间对应关系的图例</li><li>使用colormap命令可以改变配色方案</li></ul><h2 id="3-3D-plots"><a href="#3-3D-plots" class="headerlink" title="3. 3D plots"></a>3. 3D plots</h2><h3 id="3-1plot3"><a href="#3-1plot3" class="headerlink" title="3.1plot3()"></a>3.1plot3()</h3><pre class="line-numbers language-none"><code class="language-none">x&#x3D;0:0.1:3*pi;  z1&#x3D;sin(x);  z2&#x3D;sin(2.*x);  z3&#x3D;sin(3.*x); y1&#x3D;zeros(size(x));   %得到的是一个行向量y3&#x3D;ones(size(x));   %得到的也是一个行向量y2&#x3D;y3.&#x2F;2; plot3(x,y1,z1,&#39;r&#39;,x,y2,z2,&#39;b&#39;,x,y3,z3,&#39;g&#39;); grid on; xlabel(&#39;x-axis&#39;);  ylabel(&#39;y-axis&#39;);  zlabel(&#39;z-axis&#39;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16504618177140.png">{:height&#x3D;”50%” width&#x3D;”50%”}</p><h3 id="3-2Surface-Plots"><a href="#3-2Surface-Plots" class="headerlink" title="3.2Surface Plots"></a>3.2Surface Plots</h3><p>meshgrid产生X,Y网格</p><pre class="line-numbers language-none"><code class="language-none">x &#x3D; -3.5:0.2:3.5;   %设置x的范围y &#x3D; -3.5:0.2:3.5;   %设置y的范围[X,Y] &#x3D; meshgrid(x,y);   %生成一个与坐标x，y相关的网格Z &#x3D; X.*exp(-X.^2-Y.^2);   %计算每个平面坐标点对应的z值subplot(1,2,1); mesh(X,Y,Z);  title(&#39;mesh plot&#39;);subplot(1,2,2); surf(X,Y,Z);  title(&#39;surf plot&#39;);  %surf上的网格有贴图<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16504634181534.png"></p><h3 id="3-3Various-Contour-Plots"><a href="#3-3Various-Contour-Plots" class="headerlink" title="3.3Various Contour Plots"></a>3.3Various Contour Plots</h3><ul><li><p>contour():将等高的3D绘图投影到2D平面上</p><pre class="line-numbers language-none"><code class="language-none">x &#x3D; -3.5:0.2:3.5;y &#x3D; -3.5:0.2:3.5;[X,Y] &#x3D; meshgrid(x,y);Z &#x3D; X.*exp(-X.^2-Y.^2);subplot(2,1,1);mesh(X,Y,Z);axis square;subplot(2,1,2);contour(X,Y,Z);  %投影axis square;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16504635582670.png"></p></li><li><p>contour变形</p><pre class="line-numbers language-none"><code class="language-none">x &#x3D; -3.5:0.2:3.5; y &#x3D; -3.5:0.2:3.5;[X,Y] &#x3D; meshgrid(x,y); Z &#x3D; X.*exp(-X.^2-Y.^2);subplot(1,3,1); contour(Z,[-.45:.05:.45]);   %调整等高线的疏密程度%contour(Z)，相比contour(X, Y, Z)没有准确的X，Y坐标axis square;subplot(1,3,2); [C,h] &#x3D; contour(Z);  %[C,h] &#x3D; contour() 返回等高线矩阵 C 和等高线对象 hclabel(C,h);   %clabel(C,h) 为当前等高线图添加数值axis square;subplot(1,3,3); contourf(Z);   %然后显示 Z 的填色等高线图axis square;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16504641985512.png"></p></li></ul><h3 id="3-4meshc与surfc"><a href="#3-4meshc与surfc" class="headerlink" title="3.4meshc与surfc"></a>3.4meshc与surfc</h3><p>%有投影的mesh()<br>%有投影的surf()</p><h3 id="3-5视角View-Angle"><a href="#3-5视角View-Angle" class="headerlink" title="3.5视角View Angle"></a>3.5视角View Angle</h3><ul><li>view(az,el) 为当前坐标区设置相机视线的方位角和仰角。<pre class="line-numbers language-none"><code class="language-none">sphere(50);  %得到半径为1，50*50个面的球面shading flat; %shading()设置颜色着色属性%shading flat 表示每个网格线段和面具有恒定颜色，该颜色由该线段的端点或该面的角边处具有最小索引的颜色值确定。L1&#x3D; light(&#39;Position&#39;,[1 3 2]);  %打光位置，用set(L1,&#39;Position&#39;,[]) 可以改变打光位置L2&#x3D; light(&#39;Position&#39;,[-3 -1 3]);material shiny;  %控制曲面和补片的反射属性。%material shiny 使得对象具有相对于漫反射和环境光更高的镜面反射，镜面反射光的颜色仅取决于光源的颜色。set(gcf,&#39;Color&#39;,[1 1 1]);view(-45,20);  %修改光源属性set(L1, &#39;Position&#39;, [-1, -1, 1]);set(L1, &#39;Color&#39;, &#39;g&#39;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><img src="https://personal-1310862495.cos.ap-shanghai.myqcloud.com/2022/04/21/16505151876352.png"></li></ul><h3 id="3-6三维绘图"><a href="#3-6三维绘图" class="headerlink" title="3.6三维绘图"></a>3.6三维绘图</h3><ul><li>patch()</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Matlab </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Matlab </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Matlab通用课</title>
+      <link href="/2023/07/02/2023.8before/matlab-tong-yong-ke/"/>
+      <url>/2023/07/02/2023.8before/matlab-tong-yong-ke/</url>
+      
+        <content type="html"><![CDATA[<p>1-基本操作与矩阵输入</p><pre><code>format-设置显示输出格式 - format + XXX    DEFAULT:  format short    long    shortE    longE    rat分号作用    命令行中不显示结果常见Func    clc-清空命令行显示    clear-清楚工作区数值    who-工作区变量    whos-工作区变量形式Array Indexing-矩阵取序值Colon Operator (:)    j:k   ~&gt;  j j+1 j+2 ... k    j:i:k ~&gt; j j+i j+2i j+m*i    A(3,:) --矩阵的第三行row所有    A(:,2) --矩阵的第二列col所有Array Concatenation 串联拼接    A B    C=[A B]    D=[A;B]Array Manipulation 操作运算    + - *    A/B  约等于 A× inv(B)    .* 对应位置相乘    ./ 对应位置相除    实数a        A^a  A^2 A*A        A.^a     C=A&#39;  矩阵转置特殊矩阵    eye(n)   对角线全为1    zeros(n1,n2)    ones(n1,n2)    diag([2,3,4]) 对角线上为2，3，4矩阵矩阵Function    最值求和平均        max(A)  每个列col 找出最大        max(max(A))        sum(A)  每个列col求和        mean(A)  每个列col求平均    排序长宽查找        sort(A) 每个元素独立，对每列col排序        sortrows(A)  保留行向量关系，对第一列col排序        size(A)  返回出 row_num col_num        length(A)         find(A==5)  返回索引号</code></pre><p>2-结构化程式与自定义函数<br>    Script Writing<br>        注解操作<br>            注释 CTRL + R &#x2F; T<br>            %% 构建Section 便于分节检查<br>            智能缩进  CTRL + I</p><pre><code>Structured  programming    Flow Control        if | elseif | else        for        switch | case | otherwise        while        break        continue        end        pause        return    Relational Operators        &lt; | &lt;= | &gt; | &gt;=        == | ~=        &amp;&amp; 与或 ||    if elseif else        if condition1            Statement1        elseif c2            S2        else            S3        end    switch        switch expression        case value1            statement1        case v2            s2        otherwise            statement disp(&#39;other value&#39;)        end    while        while expression            statement        end    Pre allocating 预分配思想        A=zeros(2000,2000);Tips for Script Writing    开始处清空        clear all - remove variables        close all - close figures        clc - 清空命令行    semicolon; 不在命令行中显示    ellipsis...  换行的连续符    运行中使用CTRL + C可以 宕机后跳出FunctionsFunction Handles-Pointer</code></pre><p>3-变量与文件读写<br>    char-‘H’ ‘h’<br>    string<br>        s1&#x3D;’Example’<br>        s2&#x3D;’String’<br>        s3&#x3D;[s1 s2]</p><pre><code>Structure    结构体    结构体再嵌套结构体Cell Array    用大括号&#123;&#125;        A(1,1)=&#123;X&#125;        A&#123;1,1&#125;=X        num2cell()        mat2cell()Functions    concatenation-cat()        A=[1 2;3 4;] B=[5 6;7 8;]        C=cat(1,A,B) row方向接        C=cat(2,A,B) col方向接        C=cat(3,A,B) layer方向接    reshape()        A=&#123;&#39;1&#39;,2,magic(3),pi&#125;;        reshape(A,1,4)    is_Function判断是否为某变量类型File Access    Mat Data        save        load    Text        save        load    Excel        xlsread        xlswrite</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> Matlab </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Matlab </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Pr调色曲线</title>
+      <link href="/2023/06/23/2023.8before/pr-diao-se/"/>
+      <url>/2023/06/23/2023.8before/pr-diao-se/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Pr调色曲线工具"><a href="#Pr调色曲线工具" class="headerlink" title="Pr调色曲线工具"></a>Pr调色曲线工具</h1><p>参考资料：</p><ul><li><a href="https://www.bilibili.com/video/BV18K4y1a7Fq/?spm_id_from=333.999.0.0&vd_source=3b79726d0bfe11498e42e05d1b77f109">划水三文鱼视频教程</a></li></ul><h2 id="1-色彩概念"><a href="#1-色彩概念" class="headerlink" title="1. 色彩概念"></a>1. 色彩概念</h2><ul><li>色调：不同的颜色</li><li>饱和度：颜色鲜艳程度</li><li>明度：颜色的亮度</li></ul><h2 id="2-RGB曲线"><a href="#2-RGB曲线" class="headerlink" title="2. RGB曲线"></a>2. RGB曲线</h2><p><img src="https://pic.imgdb.cn/item/64954a6a1ddac507cc847be5.png"></p><p>常对白色曲线<strong>拉S型</strong>：暗部压暗，亮部提高，<strong>提高画面对比度</strong></p><h2 id="3-色相饱和度曲线"><a href="#3-色相饱和度曲线" class="headerlink" title="3. 色相饱和度曲线"></a>3. 色相饱和度曲线</h2><h3 id="3-1-色相与饱和度"><a href="#3-1-色相与饱和度" class="headerlink" title="3.1 色相与饱和度"></a>3.1 色相与饱和度</h3><p><img src="https://pic.imgdb.cn/item/64954a6a1ddac507cc847bcc.png"></p><p>吸管取色，三点范围拉高某一色的饱和度（鲜艳）</p><h3 id="3-2-色相与色相"><a href="#3-2-色相与色相" class="headerlink" title="3.2 色相与色相"></a>3.2 色相与色相</h3><p><img src="https://pic.imgdb.cn/item/64954a6a1ddac507cc847c5a.png"></p><p>吸管取色，三点范围改变某一色的色调</p><p>应用：纯色衣物换色，换发色</p><h3 id="3-3-色相与亮度"><a href="#3-3-色相与亮度" class="headerlink" title="3.3 色相与亮度"></a>3.3 色相与亮度</h3><p>改变特定颜色的亮度</p><h3 id="3-4-亮度与饱和度"><a href="#3-4-亮度与饱和度" class="headerlink" title="3.4 亮度与饱和度"></a>3.4 亮度与饱和度</h3><p><img src="https://pic.imgdb.cn/item/64954a6a1ddac507cc847c8d.png"></p><p><strong>细节处理</strong>：压低暗部的饱和度，避免调色后阴影过于鲜艳</p><h3 id="3-5-饱和度与饱和度"><a href="#3-5-饱和度与饱和度" class="headerlink" title="3.5 饱和度与饱和度"></a>3.5 饱和度与饱和度</h3><p>从来不用</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Pr </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Pr </tag>
+            
+            <tag> 调色 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>博客搭建教程及主题配置</title>
+      <link href="/2023/06/16/bo-ke-da-jian-guo-cheng/"/>
+      <url>/2023/06/16/bo-ke-da-jian-guo-cheng/</url>
+      
+        <content type="html"><![CDATA[<h1 id="hexo博客搭建"><a href="#hexo博客搭建" class="headerlink" title="hexo博客搭建"></a>hexo博客搭建</h1><p>引言：</p><p>博客教程在收藏夹吃了两年灰，最近在BUAA的Chiaki Nanami的引导下认识了CodeSheep这位up，尝试了第一步</p><p>参考资料：</p><ul><li><p><a href="https://www.bilibili.com/video/BV1Yb411a7ty/?spm_id_from=333.999.0.0">CodeSheep视频教程</a></p></li><li><p><a href="https://reclusew.github.io/2021/08/12/blog-setup/#toc-heading-1">Recluse网页教程</a></p></li></ul><h2 id="1-环境搭建"><a href="#1-环境搭建" class="headerlink" title="1. 环境搭建"></a>1. 环境搭建</h2><ul><li>安装<a href="https://nodejs.org/en">node.js</a></li><li>安装<a href="https://git-scm.com/download/win">git</a></li><li>具体操作见<a href="https://www.bilibili.com/video/BV1Yb411a7ty/?spm_id_from=333.999.0.0">CodeSheep视频教程</a></li></ul><h2 id="2-配置GitHub仓库"><a href="#2-配置GitHub仓库" class="headerlink" title="2. 配置GitHub仓库"></a>2. 配置GitHub仓库</h2><ul><li><a href="https://www.bilibili.com/video/BV1yo4y1d7UK/?spm_id_from=333.880.my_history.page.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">GitHub基础知识教程</a></li><li>注册GitHub账号并创建仓库</li><li>配置SSH免密登录参考<a href="https://reclusew.github.io/2021/08/12/blog-setup/#toc-heading-1">Recluse网页教程</a></li></ul><h2 id="3-开始搭建博客"><a href="#3-开始搭建博客" class="headerlink" title="3. 开始搭建博客"></a>3. 开始搭建博客</h2><h3 id="3-1-初始化"><a href="#3-1-初始化" class="headerlink" title="3.1 初始化"></a>3.1 初始化</h3><p>第一步: 选择合适的位置新建一文件夹(名字可随意取), 如G:\hexo blog, 该文件夹将存放各种代码</p><p>第二步: 在hexo blog文件夹下右键Git Bash Here, 输入hexo init</p><p>第三步: 初始化后执行下面</p><pre class="line-numbers language-init" data-language="init"><code class="language-init">hexo g #生成hexo s #本地预览<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre><h3 id="3-2-博客部署到GitHub上"><a href="#3-2-博客部署到GitHub上" class="headerlink" title="3.2 博客部署到GitHub上"></a>3.2 博客部署到GitHub上</h3><p>第一步: 在G:\hexo blog下安装hexo-deployer-git</p><p><code>npm install hexo-deployer-git –save</code></p><p>第二步: 编辑G:\hexo blog目录中的_config.yml文件, 修改末尾内容</p><pre class="line-numbers language-set_URL" data-language="set_URL"><code class="language-set_URL">type: gitrepository: git@github.com:YiiiAylmer&#x2F;YiiiAylmer.github.io.gitbranch: main<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre><ul><li><em><strong>repo中对应GitHub个人主页的地址</strong></em></li></ul><p>第三步: hexo blog文件夹下右键Git Bash Here, 输入命令 hexo d #部署到GitHub仓库</p><p>访问域名<a href="https://githubid.github.io/">https://GitHubID.github.io/</a></p><h2 id="4-主题设置"><a href="#4-主题设置" class="headerlink" title="4. 主题设置"></a>4. 主题设置</h2><h3 id="4-1-下载主题"><a href="#4-1-下载主题" class="headerlink" title="4.1 下载主题"></a>4.1 下载主题</h3><p>G:\hexo blog文件夹下右键Git Bash Here, 执行 git clone 主题链接</p><p>链接<a href="https://github.com/blinkfox/hexo-theme-matery">https://github.com/blinkfox/hexo-theme-matery</a></p><h3 id="4-2-修改根目录中的-config-yml文件"><a href="#4-2-修改根目录中的-config-yml文件" class="headerlink" title="4.2 修改根目录中的_config.yml文件"></a>4.2 修改根目录中的_config.yml文件</h3><p>theme: landscape 修改为 theme: hexo-theme-matery</p><h3 id="4-3-设置后重新上传"><a href="#4-3-设置后重新上传" class="headerlink" title="4.3 设置后重新上传"></a>4.3 设置后重新上传</h3><p>执行下面代码</p><pre class="line-numbers language-upload" data-language="upload"><code class="language-upload">hexo cleanhexo g  #生成hexo s  #本地预览hexo d  #上传<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> blog </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> hexo </tag>
+            
+            <tag> blog </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>博客搭建教程及主题配置</title>
+      <link href="/2023/06/16/2023.8before/bo-ke-da-jian-guo-cheng/"/>
+      <url>/2023/06/16/2023.8before/bo-ke-da-jian-guo-cheng/</url>
+      
+        <content type="html"><![CDATA[<h1 id="hexo博客搭建"><a href="#hexo博客搭建" class="headerlink" title="hexo博客搭建"></a>hexo博客搭建</h1><p>引言：</p><p>博客教程在收藏夹吃了两年灰，最近在BUAA的Chiaki Nanami的引导下认识了CodeSheep这位up，尝试了第一步</p><p>参考资料：</p><ul><li><p><a href="https://www.bilibili.com/video/BV1Yb411a7ty/?spm_id_from=333.999.0.0">CodeSheep视频教程</a></p></li><li><p><a href="https://reclusew.github.io/2021/08/12/blog-setup/#toc-heading-1">Recluse网页教程</a></p></li></ul><h2 id="1-环境搭建"><a href="#1-环境搭建" class="headerlink" title="1. 环境搭建"></a>1. 环境搭建</h2><ul><li>安装<a href="https://nodejs.org/en">node.js</a></li><li>安装<a href="https://git-scm.com/download/win">git</a></li><li>具体操作见<a href="https://www.bilibili.com/video/BV1Yb411a7ty/?spm_id_from=333.999.0.0">CodeSheep视频教程</a></li></ul><h2 id="2-配置GitHub仓库"><a href="#2-配置GitHub仓库" class="headerlink" title="2. 配置GitHub仓库"></a>2. 配置GitHub仓库</h2><ul><li><a href="https://www.bilibili.com/video/BV1yo4y1d7UK/?spm_id_from=333.880.my_history.page.click&vd_source=3b79726d0bfe11498e42e05d1b77f109">GitHub基础知识教程</a></li><li>注册GitHub账号并创建仓库</li><li>配置SSH免密登录参考<a href="https://reclusew.github.io/2021/08/12/blog-setup/#toc-heading-1">Recluse网页教程</a></li></ul><h2 id="3-开始搭建博客"><a href="#3-开始搭建博客" class="headerlink" title="3. 开始搭建博客"></a>3. 开始搭建博客</h2><h3 id="3-1-初始化"><a href="#3-1-初始化" class="headerlink" title="3.1 初始化"></a>3.1 初始化</h3><p>第一步: 选择合适的位置新建一文件夹(名字可随意取), 如G:\hexo blog, 该文件夹将存放各种代码</p><p>第二步: 在hexo blog文件夹下右键Git Bash Here, 输入hexo init</p><p>第三步: 初始化后执行下面</p><pre class="line-numbers language-init" data-language="init"><code class="language-init">hexo g #生成hexo s #本地预览<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre><h3 id="3-2-博客部署到GitHub上"><a href="#3-2-博客部署到GitHub上" class="headerlink" title="3.2 博客部署到GitHub上"></a>3.2 博客部署到GitHub上</h3><p>第一步: 在G:\hexo blog下安装hexo-deployer-git</p><p><code>npm install hexo-deployer-git –save</code></p><p>第二步: 编辑G:\hexo blog目录中的_config.yml文件, 修改末尾内容</p><pre class="line-numbers language-set_URL" data-language="set_URL"><code class="language-set_URL">type: gitrepository: git@github.com:YiiiAylmer&#x2F;YiiiAylmer.github.io.gitbranch: main<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre><ul><li><em><strong>repo中对应GitHub个人主页的地址</strong></em></li></ul><p>第三步: hexo blog文件夹下右键Git Bash Here, 输入命令 hexo d #部署到GitHub仓库</p><p>访问域名<a href="https://githubid.github.io/">https://GitHubID.github.io/</a></p><h2 id="4-主题设置"><a href="#4-主题设置" class="headerlink" title="4. 主题设置"></a>4. 主题设置</h2><h3 id="4-1-下载主题"><a href="#4-1-下载主题" class="headerlink" title="4.1 下载主题"></a>4.1 下载主题</h3><p>G:\hexo blog文件夹下右键Git Bash Here, 执行 git clone 主题链接</p><p>链接<a href="https://github.com/blinkfox/hexo-theme-matery">https://github.com/blinkfox/hexo-theme-matery</a></p><h3 id="4-2-修改根目录中的-config-yml文件"><a href="#4-2-修改根目录中的-config-yml文件" class="headerlink" title="4.2 修改根目录中的_config.yml文件"></a>4.2 修改根目录中的_config.yml文件</h3><p>theme: landscape 修改为 theme: hexo-theme-matery</p><h3 id="4-3-设置后重新上传"><a href="#4-3-设置后重新上传" class="headerlink" title="4.3 设置后重新上传"></a>4.3 设置后重新上传</h3><p>执行下面代码</p><pre class="line-numbers language-upload" data-language="upload"><code class="language-upload">hexo cleanhexo g  #生成hexo s  #本地预览hexo d  #上传<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> blog </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> hexo </tag>
+            
+            <tag> blog </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
